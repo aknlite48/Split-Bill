@@ -7,6 +7,8 @@ export default function App() {
   const [file, setFile] = useState(null);
   const [people, setPeople] = useState([]);
   const [items, setItems] = useState(null);
+  const [tax, setTax] = useState(0);
+  const [total, setTotal] = useState(0);
   const [uploaded, setUploaded] = useState(false);
 
   const handleFileChange = (e) => {
@@ -33,6 +35,8 @@ export default function App() {
       const data = await response.json();
       if (data.success) {
         setItems(data.extractedData.items);
+        setTax(data.extractedData.tax);
+        setTotal(data.extractedData.total);
         setUploaded(true);
       } else {
         console.error("Parsing failed", data.error);
@@ -58,6 +62,8 @@ export default function App() {
       })
     );
   };
+
+  const calculatedTotal = items ? items.reduce((sum, item) => sum + item.price, 0) + tax : 0;
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
@@ -90,7 +96,7 @@ export default function App() {
                       <Button
                         key={person.name}
                         variant={person.paidFor[index] ? "default" : "outline"}
-                        onClick={() => togglePayment(index, person.name)}
+                        onClick={() => {togglePayment(index, person.name);}}
                       >
                         {person.name}
                       </Button>
@@ -99,6 +105,11 @@ export default function App() {
                 </CardContent>
               </Card>
             ))}
+          <div className="mt-4 p-4 border rounded">
+            <p><strong>Tax:</strong> ${tax.toFixed(2)}</p>
+            <p><strong>Total:</strong> ${total.toFixed(2)}</p>
+            <p><strong>Calc Total:</strong> ${calculatedTotal.toFixed(2)}</p>
+          </div>
         </div>
       )}
     </div>
