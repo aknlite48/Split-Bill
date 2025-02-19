@@ -15,7 +15,8 @@ export default function App() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [editValues, setEditValues] = useState({ name: "", price: "" });
   const [splitTax, setSplitTax] = useState(false); // State for tax split selection
-  
+  const [editingTax, setEditingTax] = useState(false); // State to track tax edit
+  const [tempTax, setTempTax] = useState(tax); // Temporary tax value while editing
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -66,6 +67,25 @@ export default function App() {
     setItems([]);
     setTax(0);
     setTotal(0);
+  };
+
+  const handleTaxEdit = () => {
+    setEditingTax(true);
+  };
+
+  const handleTaxChange = (e) => {
+    setTempTax(e.target.value);
+  };
+
+  const saveTax = () => {
+    setTax(parseFloat(tempTax) || 0);
+    setEditingTax(false);
+  };
+
+  const handleTaxKeyPress = (e) => {
+    if (e.key === "Enter") {
+      saveTax();
+    }
   };
 
 
@@ -186,7 +206,27 @@ export default function App() {
           ))}
           <div className="mt-4 p-4 border rounded flex justify-between items-center">
             <div>
-              <p><strong>Tax:</strong> ${tax.toFixed(2)}</p>
+              <p><strong>Tax:</strong></p>
+            </div>
+            <div>
+              {editingTax ? (
+                <input
+                  type="number"
+                  className="border p-1 w-20 text-center"
+                  value={tempTax}
+                  onChange={handleTaxChange}
+                  onBlur={saveTax}
+                  onKeyDown={handleTaxKeyPress}
+                  autoFocus
+                />
+              ) : (
+                <span 
+                  className="cursor-pointer text-blue-600 font-bold" 
+                  onClick={handleTaxEdit}
+                >
+                  ${tax.toFixed(2)}
+                </span>
+              )}
             </div>
             <div className="flex items-center">
               <input
