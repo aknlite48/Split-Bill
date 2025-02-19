@@ -163,7 +163,10 @@ export default function App() {
         </div>
       ) : (
         <div>
+          <div className="flex space-x-2">
           <Button onClick={handleAddItem}>Add Item</Button>
+          <Button onClick={handleAddPerson}>Add Person</Button>
+          </div>
           {items.map((item, index) => (
             <Card key={index} className="p-2 mb-2 relative flex flex-col">
               <CardContent className="flex justify-between items-center">
