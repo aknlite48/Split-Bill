@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
 import { Card, CardContent } from "./components/ui/Card";
-import { Trash2, Edit, Check } from "lucide-react";
+import { Trash2, Edit, Check, Circle } from "lucide-react";
 
 export default function App() {
   const [file, setFile] = useState(null);
@@ -13,6 +13,7 @@ export default function App() {
   const [uploaded, setUploaded] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editValues, setEditValues] = useState({ name: "", price: "" });
+  const [splitTax, setSplitTax] = useState(false); // State for tax split selection
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -99,8 +100,10 @@ export default function App() {
   const calculatedTotal = items.reduce((sum, item) => sum + item.price, 0) + tax;
 
   const calculateSplit = () => {
+    const taxPerPerson = splitTax && people.length > 0 ? tax / people.length : 0;
+
     return people.map((person) => {
-      let personTotal = 0;
+      let personTotal = taxPerPerson;
       items.forEach((item, index) => {
         const payers = people.filter((p) => p.paidFor[index]);
         if (payers.length > 0 && person.paidFor[index]) {
@@ -167,8 +170,21 @@ export default function App() {
               </CardContent>
             </Card>
           ))}
+          <div className="mt-4 p-4 border rounded flex justify-between items-center">
+            <div>
+              <p><strong>Tax:</strong> ${tax.toFixed(2)}</p>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                className="mr-2"
+                checked={splitTax}
+                onChange={() => setSplitTax(!splitTax)}
+              />
+              <label>Split Tax</label>
+            </div>
+          </div>
           <div className="mt-4 p-4 border rounded">
-            <p><strong>Tax:</strong> ${tax.toFixed(2)}</p>
             <p><strong>Final Total:</strong> ${calculatedTotal.toFixed(2)}</p>
           </div>
           <div className="mt-4 p-4 border rounded">
