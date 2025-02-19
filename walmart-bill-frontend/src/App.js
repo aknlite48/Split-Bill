@@ -65,6 +65,16 @@ export default function App() {
 
   const calculatedTotal = items ? items.reduce((sum, item) => sum + item.price, 0) + tax : 0;
 
+  const calculateSplit = () => {
+    const splitAmounts = people.map((person) => {
+      const personTotal = items ? items.reduce((sum, item, index) => {
+        return person.paidFor[index] ? sum + item.price : sum;
+      }, 0) : 0;
+      return { name: person.name, amount: personTotal };
+    });
+    return splitAmounts;
+  };
+
   return (
     <div className="p-4 max-w-2xl mx-auto">
       {!uploaded ? (
@@ -96,7 +106,7 @@ export default function App() {
                       <Button
                         key={person.name}
                         variant={person.paidFor[index] ? "default" : "outline"}
-                        onClick={() => {togglePayment(index, person.name);}}
+                        onClick={() => togglePayment(index, person.name)}
                       >
                         {person.name}
                       </Button>
@@ -107,8 +117,13 @@ export default function App() {
             ))}
           <div className="mt-4 p-4 border rounded">
             <p><strong>Tax:</strong> ${tax.toFixed(2)}</p>
-            <p><strong>Total:</strong> ${total.toFixed(2)}</p>
-            <p><strong>Calc Total:</strong> ${calculatedTotal.toFixed(2)}</p>
+            <p><strong>Final Total:</strong> ${calculatedTotal.toFixed(2)}</p>
+          </div>
+          <div className="mt-4 p-4 border rounded">
+            <h3 className="font-bold">Split Amounts:</h3>
+            {calculateSplit().map((person) => (
+              <p key={person.name}>{person.name}: ${person.amount.toFixed(2)}</p>
+            ))}
           </div>
         </div>
       )}
