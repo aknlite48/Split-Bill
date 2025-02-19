@@ -167,6 +167,16 @@ export default function App() {
               </CardContent>
             </Card>
           ))}
+          <div className="mt-4 p-4 border rounded">
+            <p><strong>Tax:</strong> ${tax.toFixed(2)}</p>
+            <p><strong>Final Total:</strong> ${calculatedTotal.toFixed(2)}</p>
+          </div>
+          <div className="mt-4 p-4 border rounded">
+            <h3 className="font-bold">Split Amounts:</h3>
+            {calculateSplit().map((person) => (
+              <p key={person.name}>{person.name}: ${person.amount.toFixed(2)}</p>
+            ))}
+          </div>
         </div>
       )}
     </div>
