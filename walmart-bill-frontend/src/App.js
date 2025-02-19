@@ -11,9 +11,11 @@ export default function App() {
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
   const [uploaded, setUploaded] = useState(false);
+  const [emptyBillMode, setEmptyBillMode] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editValues, setEditValues] = useState({ name: "", price: "" });
   const [splitTax, setSplitTax] = useState(false); // State for tax split selection
+  
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -57,6 +59,15 @@ export default function App() {
       console.error("Upload failed", error);
     }
   };
+
+  const handleEmptyBill = () => {
+    setUploaded(true);
+    setEmptyBillMode(true);
+    setItems([]);
+    setTax(0);
+    setTotal(0);
+  };
+
 
   const togglePayment = (itemIndex, personName) => {
     setPeople((prevPeople) =>
@@ -119,7 +130,10 @@ export default function App() {
       {!uploaded ? (
         <div className="space-y-4">
           <Input type="file" onChange={handleFileChange} />
-          <Button onClick={handleUpload} disabled={!file}>Upload PDF</Button>
+          <div className="flex space-x-2">
+            <Button onClick={handleUpload} disabled={!file}>Upload PDF</Button>
+            <Button onClick={handleEmptyBill} variant="outline">Empty Bill</Button>
+          </div>
           <div><Button onClick={handleAddPerson}>Add Person</Button></div>
           <div className="mt-2">
             {people.map((person, index) => (
