@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
 import { Card, CardContent } from "./components/ui/Card";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit, Check } from "lucide-react";
 
 export default function App() {
   const [file, setFile] = useState(null);
@@ -11,6 +11,8 @@ export default function App() {
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
   const [uploaded, setUploaded] = useState(false);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editValues, setEditValues] = useState({ name: "", price: "" });
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -20,6 +22,14 @@ export default function App() {
     const name = prompt("Enter person's name:");
     if (name) {
       setPeople([...people, { name, paidFor: {} }]);
+    }
+  };
+
+  const handleAddItem = () => {
+    const name = prompt("Enter item name:");
+    const price = parseFloat(prompt("Enter item price:"));
+    if (name && !isNaN(price)) {
+      setItems([...items, { name, price }]);
     }
   };
 
@@ -68,30 +78,37 @@ export default function App() {
     setItems((prevItems) => prevItems.filter((_, i) => i !== index));
   };
 
-  const handleAddItem = () => {
-    const name = prompt("Enter item name:");
-    const price = parseFloat(prompt("Enter item price:"));
-    if (name && !isNaN(price)) {
-      setItems([...items, { name, price }]);
+  const handleEditItem = (index) => {
+    if (editingIndex === index) {
+      setItems((prevItems) =>
+        prevItems.map((item, i) =>
+          i === index ? { name: editValues.name, price: parseFloat(editValues.price) || 0 } : item
+        )
+      );
+      setEditingIndex(null);
+    } else {
+      setEditValues({ name: items[index].name, price: items[index].price });
+      setEditingIndex(index);
     }
   };
 
-  const calculatedTotal = items ? items.reduce((sum, item) => sum + item.price, 0) + tax : 0;
+  const handleInputChange = (e, field) => {
+    setEditValues({ ...editValues, [field]: e.target.value });
+  };
+
+  const calculatedTotal = items.reduce((sum, item) => sum + item.price, 0) + tax;
 
   const calculateSplit = () => {
-    const splitAmounts = people.map((person) => {
+    return people.map((person) => {
       let personTotal = 0;
-      if (items) {
-        items.forEach((item, index) => {
-          const payers = people.filter((p) => p.paidFor[index]);
-          if (payers.length > 0 && person.paidFor[index]) {
-            personTotal += item.price / payers.length;
-          }
-        });
-      }
+      items.forEach((item, index) => {
+        const payers = people.filter((p) => p.paidFor[index]);
+        if (payers.length > 0 && person.paidFor[index]) {
+          personTotal += item.price / payers.length;
+        }
+      });
       return { name: person.name, amount: personTotal };
     });
-    return splitAmounts;
   };
 
   return (
@@ -99,60 +116,57 @@ export default function App() {
       {!uploaded ? (
         <div className="space-y-4">
           <Input type="file" onChange={handleFileChange} />
-          <Button onClick={handleUpload} disabled={!file}>
-            Upload PDF
-          </Button>
-          <div>
-            <Button onClick={handleAddPerson}>Add Person</Button>
-          </div>
+          <Button onClick={handleUpload} disabled={!file}>Upload PDF</Button>
+          <div><Button onClick={handleAddPerson}>Add Person</Button></div>
           <div className="mt-2">
             {people.map((person, index) => (
-              <span key={index} className="mr-2 p-1 bg-gray-200 rounded">
-                {person.name}
-              </span>
+              <span key={index} className="mr-2 p-1 bg-gray-200 rounded">{person.name}</span>
             ))}
           </div>
         </div>
       ) : (
         <div>
           <Button onClick={handleAddItem}>Add Item</Button>
-          {items &&
-            items.map((item, index) => (
-              <Card key={index} className="p-2 mb-2 relative flex flex-col">
-                <CardContent className="flex justify-between items-center">
-                  <span>{item.name} - ${item.price}</span>
-                  <div className="space-x-2">
-                    {people.map((person) => (
-                      <Button
-                        key={person.name}
-                        variant={person.paidFor[index] ? "default" : "outline"}
-                        onClick={() => togglePayment(index, person.name)}
-                      >
-                        {person.name}
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-                <div className="flex justify-end p-2">
-                  <button
-                    className="text-gray-600 hover:text-black"
-                    onClick={() => handleDeleteItem(index)}
-                  >
+          {items.map((item, index) => (
+            <Card key={index} className="p-2 mb-2 relative flex flex-col">
+              <CardContent className="flex justify-between items-center">
+                {editingIndex === index ? (
+                  <>
+                    <input
+                      className="border p-1 mr-2"
+                      value={editValues.name}
+                      onChange={(e) => handleInputChange(e, "name")}
+                    />
+                    <input
+                      className="border p-1 w-16"
+                      value={editValues.price}
+                      onChange={(e) => handleInputChange(e, "price")}
+                      type="number"
+                    />
+                  </>
+                ) : (
+                  <span>{item.name} - ${item.price.toFixed(2)}</span>
+                )}
+                <div className="space-x-2 flex">
+                  {people.map((person) => (
+                    <Button
+                      key={person.name}
+                      variant={person.paidFor[index] ? "default" : "outline"}
+                      onClick={() => togglePayment(index, person.name)}
+                    >
+                      {person.name}
+                    </Button>
+                  ))}
+                  <button onClick={() => handleEditItem(index)} className="text-gray-600 hover:text-black">
+                    {editingIndex === index ? <Check size={20} /> : <Edit size={20} />}
+                  </button>
+                  <button onClick={() => handleDeleteItem(index)} className="text-gray-600 hover:text-black">
                     <Trash2 size={20} />
                   </button>
                 </div>
-              </Card>
-            ))}
-          <div className="mt-4 p-4 border rounded">
-            <p><strong>Tax:</strong> ${tax.toFixed(2)}</p>
-            <p><strong>Final Total:</strong> ${calculatedTotal.toFixed(2)}</p>
-          </div>
-          <div className="mt-4 p-4 border rounded">
-            <h3 className="font-bold">Split Amounts:</h3>
-            {calculateSplit().map((person) => (
-              <p key={person.name}>{person.name}: ${person.amount.toFixed(2)}</p>
-            ))}
-          </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
     </div>
