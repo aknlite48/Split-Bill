@@ -37,12 +37,20 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 
         // Step 2️⃣: Send extracted text to OpenAI API for structured parsing
         console.log("🚀 Sending extracted text to OpenAI...");
+        
+        const input_prompt = `Extract a structured list of items, their costs, tax, and total from this structured data parsed from a Walmart bill pdf. 
+        if items are discounted, make to sure include only the prices of items post discount. display the parsed items in json format. 
+        the list of parsed items with their prices should be in a tuple list,
+        each item in the list should have the "name" attribute and the "price" attribute,
+        the tax and final price should be different attributes and should be called "tax" and "total".
+        return pure JSON without code fences or additional text.`
+
         const openaiResponse = await axios.post(
             "https://api.openai.com/v1/chat/completions",
             {
                 model: "gpt-4-turbo",  // Change to "gpt-3.5-turbo" if needed
                 messages: [
-                    { role: "system", content: "Extract a structured list of items, their costs, tax, and total from this structured data parsed from a Walmart bill pdf. if items are discounted, make to sure include only the prices of items post discount" },
+                    { role: "system", content:  input_prompt},
                     { role: "user", content: extractedText }
                 ],
                 temperature: 0
@@ -61,10 +69,24 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
         fs.unlinkSync(filePath);
 
         // Step 4️⃣: Send extracted structured data to frontend
-        res.json({
-            success: true,
-            extractedData: openaiResponse.data.choices[0].message.content
-        });
+        
+
+        try {
+            const final_message = JSON.parse(openaiResponse.data.choices[0].message.content)
+            res.json({
+                success: true,
+                extractedData: final_message
+            });
+        } catch(error1) {
+            console.log('json parsing failed')
+            res.status(500).json({
+                success: false,
+                error: "parsinng failed",
+                details: error.response?.data || error.message
+            });
+
+        }
+
 
     } catch (error) {
         console.error("❌ OpenAI API Error:", error.response?.data || error.message);
