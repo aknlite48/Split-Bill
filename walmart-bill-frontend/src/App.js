@@ -1,118 +1,106 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { Button } from "./components/ui/Button";
+import { Input } from "./components/ui/Input";
+import { Card, CardContent } from "./components/ui/Card";
 
-function App() {
-    const [pdf, setPdf] = useState(null);
-    const [items, setItems] = useState([]);
-    const [people, setPeople] = useState([]);
-    const [assignments, setAssignments] = useState({});
+export default function App() {
+  const [file, setFile] = useState(null);
+  const [people, setPeople] = useState([]);
+  const [items, setItems] = useState(null);
+  const [uploaded, setUploaded] = useState(false);
 
-    // Handle file upload
-    const handleFileChange = (event) => {
-        setPdf(event.target.files[0]);
-    };
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
-    // Upload and process PDF
-    const handleUpload = async () => {
-        if (!pdf) {
-            alert("Please upload a PDF file");
-            return;
+  const handleAddPerson = () => {
+    const name = prompt("Enter person's name:");
+    if (name) {
+      setPeople([...people, { name, paidFor: {} }]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("pdf", file);
+
+    try {
+      const response = await fetch("http://localhost:5001/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.success) {
+        setItems(data.extractedData.items);
+        setUploaded(true);
+      } else {
+        console.error("Parsing failed", data.error);
+      }
+    } catch (error) {
+      console.error("Upload failed", error);
+    }
+  };
+
+  const togglePayment = (itemIndex, personName) => {
+    setPeople((prevPeople) =>
+      prevPeople.map((person) => {
+        if (person.name === personName) {
+          return {
+            ...person,
+            paidFor: {
+              ...person.paidFor,
+              [itemIndex]: !person.paidFor[itemIndex],
+            },
+          };
         }
-
-        const formData = new FormData();
-        formData.append("pdf", pdf);
-
-        try {
-            const response = await axios.post("http://localhost:5001/upload", formData, {
-                headers: { "Content-Type": "multipart/form-data" }
-            });
-
-            // Assume response is a structured JSON list of items
-            setItems(response.data.items);
-            setAssignments(response.data.items.reduce((acc, item) => {
-                acc[item.name] = [];
-                return acc;
-            }, {}));
-
-        } catch (error) {
-            console.error("Error uploading PDF:", error);
-            alert("Failed to process the PDF");
-        }
-    };
-
-    // Add a new person
-    const addPerson = () => {
-        const name = prompt("Enter the person's name:");
-        if (name) setPeople([...people, name]);
-    };
-
-    // Assign item to a person
-    const assignItem = (itemName, person) => {
-        setAssignments((prev) => {
-            const newAssignments = { ...prev };
-            if (newAssignments[itemName].includes(person)) {
-                newAssignments[itemName] = newAssignments[itemName].filter(p => p !== person);
-            } else {
-                newAssignments[itemName].push(person);
-            }
-            return newAssignments;
-        });
-    };
-
-    return (
-        <div style={{ maxWidth: "600px", margin: "auto", textAlign: "center" }}>
-            <h2>Walmart Bill Splitter</h2>
-
-            <input type="file" accept="application/pdf" onChange={handleFileChange} />
-            <button onClick={handleUpload}>Upload & Process</button>
-
-            <h3>People Splitting the Bill</h3>
-            <button onClick={addPerson}>Add Person</button>
-            <ul>
-                {people.map((person, index) => (
-                    <li key={index}>{person}</li>
-                ))}
-            </ul>
-
-            <h3>Bill Items</h3>
-            {items.length > 0 ? (
-                <table border="1" style={{ width: "100%", marginTop: "10px" }}>
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Cost</th>
-                            <th>Assign</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {items.map((item, index) => (
-                            <tr key={index}>
-                                <td>{item.name}</td>
-                                <td>${item.cost.toFixed(2)}</td>
-                                <td>
-                                    {people.map((person) => (
-                                        <button 
-                                            key={person}
-                                            onClick={() => assignItem(item.name, person)}
-                                            style={{
-                                                margin: "2px",
-                                                backgroundColor: assignments[item.name]?.includes(person) ? "green" : "gray",
-                                                color: "white"
-                                            }}
-                                        >
-                                            {person}
-                                        </button>
-                                    ))}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            ) : (
-                <p>No items yet. Upload a PDF to extract the bill details.</p>
-            )}
-        </div>
+        return person;
+      })
     );
-}
+  };
 
-export default App;
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      {!uploaded ? (
+        <div className="space-y-4">
+          <Input type="file" onChange={handleFileChange} />
+          <Button onClick={handleUpload} disabled={!file}>
+            Upload PDF
+          </Button>
+          <div>
+            <Button onClick={handleAddPerson}>Add Person</Button>
+          </div>
+          <div className="mt-2">
+            {people.map((person, index) => (
+              <span key={index} className="mr-2 p-1 bg-gray-200 rounded">
+                {person.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div>
+          {items &&
+            items.map((item, index) => (
+              <Card key={index} className="p-2 mb-2">
+                <CardContent className="flex justify-between items-center">
+                  <span>{item.name} - ${item.price}</span>
+                  <div className="space-x-2">
+                    {people.map((person) => (
+                      <Button
+                        key={person.name}
+                        variant={person.paidFor[index] ? "default" : "outline"}
+                        onClick={() => togglePayment(index, person.name)}
+                      >
+                        {person.name}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+}
