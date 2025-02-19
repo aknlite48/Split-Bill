@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
 import { Card, CardContent } from "./components/ui/Card";
+import { Trash2 } from "lucide-react";
 
 export default function App() {
   const [file, setFile] = useState(null);
   const [people, setPeople] = useState([]);
-  const [items, setItems] = useState(null);
+  const [items, setItems] = useState([]);
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
   const [uploaded, setUploaded] = useState(false);
@@ -63,6 +64,18 @@ export default function App() {
     );
   };
 
+  const handleDeleteItem = (index) => {
+    setItems((prevItems) => prevItems.filter((_, i) => i !== index));
+  };
+
+  const handleAddItem = () => {
+    const name = prompt("Enter item name:");
+    const price = parseFloat(prompt("Enter item price:"));
+    if (name && !isNaN(price)) {
+      setItems([...items, { name, price }]);
+    }
+  };
+
   const calculatedTotal = items ? items.reduce((sum, item) => sum + item.price, 0) + tax : 0;
 
   const calculateSplit = () => {
@@ -102,9 +115,10 @@ export default function App() {
         </div>
       ) : (
         <div>
+          <Button onClick={handleAddItem}>Add Item</Button>
           {items &&
             items.map((item, index) => (
-              <Card key={index} className="p-2 mb-2">
+              <Card key={index} className="p-2 mb-2 relative flex flex-col">
                 <CardContent className="flex justify-between items-center">
                   <span>{item.name} - ${item.price}</span>
                   <div className="space-x-2">
@@ -119,6 +133,14 @@ export default function App() {
                     ))}
                   </div>
                 </CardContent>
+                <div className="flex justify-end p-2">
+                  <button
+                    className="text-gray-600 hover:text-black"
+                    onClick={() => handleDeleteItem(index)}
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
               </Card>
             ))}
           <div className="mt-4 p-4 border rounded">
