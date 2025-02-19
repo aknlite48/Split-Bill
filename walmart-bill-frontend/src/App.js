@@ -67,9 +67,15 @@ export default function App() {
 
   const calculateSplit = () => {
     const splitAmounts = people.map((person) => {
-      const personTotal = items ? items.reduce((sum, item, index) => {
-        return person.paidFor[index] ? sum + item.price : sum;
-      }, 0) : 0;
+      let personTotal = 0;
+      if (items) {
+        items.forEach((item, index) => {
+          const payers = people.filter((p) => p.paidFor[index]);
+          if (payers.length > 0 && person.paidFor[index]) {
+            personTotal += item.price / payers.length;
+          }
+        });
+      }
       return { name: person.name, amount: personTotal };
     });
     return splitAmounts;
