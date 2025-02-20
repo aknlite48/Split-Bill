@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
 import { Card, CardContent } from "./components/ui/Card";
-import { Trash2, Edit, Check, Circle } from "lucide-react";
+import { Trash2, Edit, Check } from "lucide-react";
+import { Dialogue } from "./components/ui/Dialogue";
 
 export default function App() {
   const [file, setFile] = useState(null);
@@ -14,27 +15,46 @@ export default function App() {
   const [emptyBillMode, setEmptyBillMode] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editValues, setEditValues] = useState({ name: "", price: "" });
-  const [splitTax, setSplitTax] = useState(false); // State for tax split selection
-  const [editingTax, setEditingTax] = useState(false); // State to track tax edit
-  const [tempTax, setTempTax] = useState(tax); // Temporary tax value while editing
+  const [splitTax, setSplitTax] = useState(false);
+  const [editingTax, setEditingTax] = useState(false);
+  const [tempTax, setTempTax] = useState(tax);
+
+  // Dialogue state
+  const [showDialogue, setShowDialogue] = useState(false);
+  const [dialogueType, setDialogueType] = useState(""); // "item" | "person"
+  const [dialogueFormData, setDialogueFormData] = useState({ name: "", price: "" });
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
+  // Open the dialogue for adding a person
   const handleAddPerson = () => {
-    const name = prompt("Enter person's name:");
-    if (name) {
-      setPeople([...people, { name, paidFor: {} }]);
-    }
+    setDialogueType("person");
+    setDialogueFormData({ name: "" }); // reset
+    setShowDialogue(true);
   };
 
+  // Open the dialogue for adding an item
   const handleAddItem = () => {
-    const name = prompt("Enter item name:");
-    const price = parseFloat(prompt("Enter item price:"));
-    if (name && !isNaN(price)) {
-      setItems([...items, { name, price }]);
+    setDialogueType("item");
+    setDialogueFormData({ name: "", price: "" }); // reset
+    setShowDialogue(true);
+  };
+
+  // When form is submitted in the Dialogue
+  const handleDialogueSubmit = () => {
+    if (dialogueType === "person") {
+      // Add new person
+      setPeople([...people, { name: dialogueFormData.name, paidFor: {} }]);
+    } else if (dialogueType === "item") {
+      // Add new item (make sure to parse float)
+      const parsedPrice = parseFloat(dialogueFormData.price);
+      if (!isNaN(parsedPrice)) {
+        setItems([...items, { name: dialogueFormData.name, price: parsedPrice }]);
+      }
     }
+    setShowDialogue(false);
   };
 
   const handleUpload = async () => {
@@ -88,7 +108,6 @@ export default function App() {
     }
   };
 
-
   const togglePayment = (itemIndex, personName) => {
     setPeople((prevPeople) =>
       prevPeople.map((person) => {
@@ -114,7 +133,12 @@ export default function App() {
     if (editingIndex === index) {
       setItems((prevItems) =>
         prevItems.map((item, i) =>
-          i === index ? { name: editValues.name, price: parseFloat(editValues.price) || 0 } : item
+          i === index
+            ? {
+                name: editValues.name,
+                price: parseFloat(editValues.price) || 0,
+              }
+            : item
         )
       );
       setEditingIndex(null);
@@ -132,7 +156,6 @@ export default function App() {
 
   const calculateSplit = () => {
     const taxPerPerson = splitTax && people.length > 0 ? tax / people.length : 0;
-
     return people.map((person) => {
       let personTotal = taxPerPerson;
       items.forEach((item, index) => {
@@ -147,25 +170,43 @@ export default function App() {
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
+      {/* Dialogue for adding items/people */}
+      <Dialogue
+        isOpen={showDialogue}
+        onClose={() => setShowDialogue(false)}
+        onSubmit={handleDialogueSubmit}
+        dialogueType={dialogueType}
+        formData={dialogueFormData}
+        setFormData={setDialogueFormData}
+      />
+
       {!uploaded ? (
         <div className="space-y-4">
           <Input type="file" onChange={handleFileChange} />
           <div className="flex space-x-2">
-            <Button onClick={handleUpload} disabled={!file}>Upload PDF</Button>
-            <Button onClick={handleEmptyBill} variant="outline">Empty Bill</Button>
+            <Button onClick={handleUpload} disabled={!file}>
+              Upload PDF
+            </Button>
+            <Button onClick={handleEmptyBill} variant="outline">
+              Empty Bill
+            </Button>
           </div>
-          <div><Button onClick={handleAddPerson}>Add Person</Button></div>
+          <div>
+            <Button onClick={handleAddPerson}>Add Person</Button>
+          </div>
           <div className="mt-2">
             {people.map((person, index) => (
-              <span key={index} className="mr-2 p-1 bg-gray-200 rounded">{person.name}</span>
+              <span key={index} className="mr-2 p-1 bg-gray-200 rounded">
+                {person.name}
+              </span>
             ))}
           </div>
         </div>
       ) : (
         <div>
           <div className="flex space-x-2">
-          <Button onClick={handleAddItem}>Add Item</Button>
-          <Button onClick={handleAddPerson}>Add Person</Button>
+            <Button onClick={handleAddItem}>Add Item</Button>
+            <Button onClick={handleAddPerson}>Add Person</Button>
           </div>
           {items.map((item, index) => (
             <Card key={index} className="p-2 mb-2 relative flex flex-col">
@@ -185,7 +226,9 @@ export default function App() {
                     />
                   </>
                 ) : (
-                  <span>{item.name} - ${item.price.toFixed(2)}</span>
+                  <span>
+                    {item.name} - ${item.price.toFixed(2)}
+                  </span>
                 )}
                 <div className="space-x-2 flex">
                   {people.map((person) => (
@@ -197,19 +240,29 @@ export default function App() {
                       {person.name}
                     </Button>
                   ))}
-                  <button onClick={() => handleEditItem(index)} className="text-gray-600 hover:text-black">
+                  <button
+                    onClick={() => handleEditItem(index)}
+                    className="text-gray-600 hover:text-black"
+                  >
                     {editingIndex === index ? <Check size={20} /> : <Edit size={20} />}
                   </button>
-                  <button onClick={() => handleDeleteItem(index)} className="text-gray-600 hover:text-black">
+                  <button
+                    onClick={() => handleDeleteItem(index)}
+                    className="text-gray-600 hover:text-black"
+                  >
                     <Trash2 size={20} />
                   </button>
                 </div>
               </CardContent>
             </Card>
           ))}
+
+          {/* Tax and total */}
           <div className="mt-4 p-4 border rounded flex justify-between items-center">
             <div>
-              <p><strong>Tax:</strong></p>
+              <p>
+                <strong>Tax:</strong>
+              </p>
             </div>
             <div>
               {editingTax ? (
@@ -223,8 +276,8 @@ export default function App() {
                   autoFocus
                 />
               ) : (
-                <span 
-                  className="cursor-pointer text-blue-600 font-bold" 
+                <span
+                  className="cursor-pointer text-blue-600 font-bold"
                   onClick={handleTaxEdit}
                 >
                   ${tax.toFixed(2)}
@@ -242,12 +295,16 @@ export default function App() {
             </div>
           </div>
           <div className="mt-4 p-4 border rounded">
-            <p><strong>Final Total:</strong> ${calculatedTotal.toFixed(2)}</p>
+            <p>
+              <strong>Final Total:</strong> ${calculatedTotal.toFixed(2)}
+            </p>
           </div>
           <div className="mt-4 p-4 border rounded">
             <h3 className="font-bold">Split Amounts:</h3>
             {calculateSplit().map((person) => (
-              <p key={person.name}>{person.name}: ${person.amount.toFixed(2)}</p>
+              <p key={person.name}>
+                {person.name}: ${person.amount.toFixed(2)}
+              </p>
             ))}
           </div>
         </div>
