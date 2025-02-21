@@ -244,6 +244,7 @@ export default function App() {
       setItems([]);
       setTax(0);
       setTotal(0);
+      localStorage.clear()
     };
 
     const handleUpload = async () => {
