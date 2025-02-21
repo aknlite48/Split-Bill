@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {BrowserRouter as Router,Routes, Route, Link,useNavigate } from 'react-router-dom'
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
@@ -143,6 +143,27 @@ export default function App() {
 
   const Upload_Page = () => {
     const navigate = useNavigate();
+    const [file, setFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+
+    const handleFileChange = (e) => {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+  
+      if (selectedFile) {
+        const objectUrl = URL.createObjectURL(selectedFile);
+        setPreviewUrl(objectUrl);
+      }
+    };
+  
+    useEffect(() => {
+      return () => {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
+      };
+    }, [previewUrl]);
+  
 
     const handleEmptyBill = () => {
       //setUploaded(true);
@@ -182,6 +203,11 @@ export default function App() {
       <div className="p-4 max-w-2xl mx-auto">
       <div className="space-y-4">
         <Input type="file" onChange={handleFileChange} />
+        {previewUrl && (
+          <div className="mt-2">
+            <embed src={previewUrl} width="100%" height="500px" type="application/pdf" />
+          </div>
+        )}
         <div className="flex space-x-2">
           <Button onClick={handleUpload} disabled={!file}>
             Upload PDF
