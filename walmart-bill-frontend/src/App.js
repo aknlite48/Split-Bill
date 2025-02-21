@@ -25,6 +25,12 @@ export default function App() {
   const [dialogueType, setDialogueType] = useState(""); // "item" | "person"
   const [dialogueFormData, setDialogueFormData] = useState({ name: "", price: "" });
 
+  function handleAddNameWithoutClosing(name) {
+    // Only add if the name isn’t empty/duplicate, etc.
+    setPeople((prev) => [...prev, { name, paidFor: {} }]);
+  }
+
+
 
 
   useEffect(() => {
@@ -234,6 +240,7 @@ export default function App() {
       //setUploaded(true);
       navigate('/bill');
       setEmptyBillMode(true);
+      setPeople([])
       setItems([]);
       setTax(0);
       setTotal(0);
@@ -463,6 +470,8 @@ export default function App() {
         dialogueType={dialogueType}
         formData={dialogueFormData}
         setFormData={setDialogueFormData}
+        people={people}
+        onAddNameNoClose={handleAddNameWithoutClosing} 
       />
       <Routes>
         <Route path='/upload' element={<Upload_Page/>} />
