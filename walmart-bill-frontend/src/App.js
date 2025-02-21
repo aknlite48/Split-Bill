@@ -25,6 +25,33 @@ export default function App() {
   const [dialogueType, setDialogueType] = useState(""); // "item" | "person"
   const [dialogueFormData, setDialogueFormData] = useState({ name: "", price: "" });
 
+
+
+  useEffect(() => {
+    const savedItems = localStorage.getItem("items");
+    const savedPeople = localStorage.getItem("people")
+    const savedTax = localStorage.getItem("tax");
+    const savedTotal = localStorage.getItem("total");
+
+    if (savedItems) setItems(JSON.parse(savedItems));
+    if (savedPeople) setPeople(JSON.parse(savedPeople))
+    if (savedTax) setTax(parseFloat(savedTax));
+    if (savedTotal) setTotal(parseFloat(savedTotal));
+  }, []);
+
+  // 🔹 Save items, tax, and total to localStorage when they change
+  useEffect(() => {
+    if (items.length > 0) {
+      localStorage.setItem("items", JSON.stringify(items));
+    }
+    if (items.length > 0) {
+      localStorage.setItem("people", JSON.stringify(people));
+    }
+    localStorage.setItem("tax", tax.toString());
+    localStorage.setItem("total", total.toString());
+  }, [items,people, tax, total]);
+
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
@@ -228,6 +255,7 @@ export default function App() {
           setItems(data.extractedData.items);
           setTax(data.extractedData.tax);
           setTotal(data.extractedData.total);
+          setPeople([])
           //setUploaded(true);
           navigate('/bill');
         } else {
