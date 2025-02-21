@@ -115,12 +115,9 @@ export function Dialogue({
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
-            >
-              {dialogueType === "item" ? "Add Item" : "Done"}
-            </button>
+            
+            {dialogueType === "item" ?  (<button type="form" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Add Item</button>) :
+             (<button type="button" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded" onClick={onClose}>Done</button>)}
           </div>
         </form>
       </div>
