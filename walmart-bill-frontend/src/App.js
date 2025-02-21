@@ -277,16 +277,6 @@ export default function App() {
             Empty Bill
           </Button>
         </div>
-        <div>
-          <Button onClick={handleAddPerson}>Add Person</Button>
-        </div>
-        <div className="mt-2">
-          {people.map((person, index) => (
-            <span key={index} className="mr-2 p-1 bg-gray-200 rounded">
-              {person.name}
-            </span>
-          ))}
-        </div>
       </div>
       </div>
     )
