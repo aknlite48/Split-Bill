@@ -147,6 +147,8 @@ export default function App() {
     const [previewUrl, setPreviewUrl] = useState(null);
     const [dragActive, setDragActive] = useState(false);
 
+    const [isUploading, setIsUploading] = useState(false);
+
     const inputRef = useRef(null);
 
     const handleFileChange = (e) => {
@@ -214,6 +216,7 @@ export default function App() {
       if (!file) return;
       const formData = new FormData();
       formData.append("pdf", file);
+      setIsUploading(true);
   
       try {
         const response = await fetch("http://localhost:5001/upload", {
@@ -232,6 +235,8 @@ export default function App() {
         }
       } catch (error) {
         console.error("Upload failed", error);
+      } finally {
+        setIsUploading(false); // Reset loading state
       }
     };
 
@@ -270,9 +275,36 @@ export default function App() {
           </div>
         )}
         <div className="flex space-x-2">
-          <Button onClick={handleUpload} disabled={!file}>
-            Upload PDF
+        <Button onClick={handleUpload} disabled={!file || isUploading}>
+            {isUploading ? (
+              <>
+                <svg
+                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+                Uploading...
+              </>
+            ) : (
+              "Upload PDF"
+            )}
           </Button>
+
           <Button onClick={handleEmptyBill} variant="outline">
             Empty Bill
           </Button>
