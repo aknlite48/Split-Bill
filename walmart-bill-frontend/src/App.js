@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState,useEffect,useRef } from "react";
 import {BrowserRouter as Router,Routes, Route, Link,useNavigate } from 'react-router-dom'
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
@@ -145,6 +145,9 @@ export default function App() {
     const navigate = useNavigate();
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [dragActive, setDragActive] = useState(false);
+
+    const inputRef = useRef(null);
 
     const handleFileChange = (e) => {
       const selectedFile = e.target.files[0];
@@ -163,8 +166,41 @@ export default function App() {
         }
       };
     }, [previewUrl]);
-  
 
+    const handleBrowseClick = () => {
+      // Programmatically click the hidden input
+      if (inputRef.current) {
+        inputRef.current.click();
+      }
+    };
+  
+    // Drag events
+    const handleDragOver = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(true);
+    };
+  
+    const handleDragLeave = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
+    };
+  
+    const handleDrop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
+  
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        const droppedFile = e.dataTransfer.files[0];
+        setFile(droppedFile);
+  
+        const objectUrl = URL.createObjectURL(droppedFile);
+        setPreviewUrl(objectUrl);
+      }
+    };
+  
     const handleEmptyBill = () => {
       //setUploaded(true);
       navigate('/bill');
@@ -202,7 +238,32 @@ export default function App() {
     return (
       <div className="p-4 max-w-2xl mx-auto">
       <div className="space-y-4">
-        <Input type="file" onChange={handleFileChange} />
+      <div
+          className={`border-2 border-dashed rounded p-8 text-center cursor-pointer transition-colors
+            ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`
+          }
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={handleBrowseClick}
+        >
+          {file ? (
+            <p className="text-gray-700 font-medium">{file.name}</p>
+          ) : (
+            <p className="text-gray-500">
+              Drag &amp; drop your PDF here or <span className="text-blue-500 underline">click</span> to select
+            </p>
+          )}
+        </div>
+
+        {/* Hidden file input */}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="application/pdf"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
         {previewUrl && (
           <div className="mt-2">
             <embed src={previewUrl} width="100%" height="500px" type="application/pdf" />
