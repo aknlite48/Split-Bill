@@ -9,7 +9,7 @@ export function Dialogue({
   formData,
   setFormData,
   people = [],
-  onAddNameNoClose, // <-- new prop to add a person without closing
+  onAddNameNoClose,
 }) {
   if (!isOpen) return null;
 
@@ -17,17 +17,14 @@ export function Dialogue({
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // “Done” button uses this, which calls the parent’s onSubmit (closing the dialog)
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit();
   };
 
-  // Tick button uses this, which calls the parent’s onAddNameNoClose (stays open)
   const handleAddNameNoClose = () => {
     if (formData.name.trim() !== "") {
       onAddNameNoClose(formData.name);
-      // Clear the name field so user can type another name
       setFormData((prev) => ({ ...prev, name: "" }));
     }
   };
@@ -39,29 +36,25 @@ export function Dialogue({
           {dialogueType === "item" ? "Add Item" : "Add Person"}
         </h2>
 
-        {/* Display existing people if we're adding a person */}
         {dialogueType === "person" && people.length > 0 && (
           <div className="mb-4">
             <h3 className="font-semibold">Current People:</h3>
-            <ul className="list-disc list-inside">
+            <div className="flex flex-col items-start space-y-2 mt-2">
               {people.map((p) => (
-                <li key={p.name}>{p.name}</li>
+                <div
+                  key={p.name}
+                  className="inline-block bg-gray-50 rounded-xl px-3 py-1"
+                >
+                  {p.name}
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* For adding a person: remove label, show placeholder, add tick button */}
           {dialogueType === "person" && (
             <div className="flex items-center">
-              <button
-                type="button"
-                onClick={handleAddNameNoClose}
-                className="mr-2 p-2 bg-green-600 hover:bg-green-700 text-white rounded"
-              >
-                <Check size={20} />
-              </button>
               <input
                 name="name"
                 type="text"
@@ -71,14 +64,19 @@ export function Dialogue({
                 className="border border-gray-300 rounded px-2 py-1 w-full"
                 required
               />
+              <button
+                type="button"
+                onClick={handleAddNameNoClose}
+                className="ml-2 p-2 bg-green-600 hover:bg-green-700 text-white rounded"
+              >
+                <Check size={20} />
+              </button>
             </div>
           )}
 
-          {/* For adding an item, you can keep the label for price, or remove it similarly */}
           {dialogueType === "item" && (
             <>
               <div>
-                {/* No label above name, just a placeholder, if you prefer consistency */}
                 <input
                   name="name"
                   type="text"
@@ -115,9 +113,23 @@ export function Dialogue({
             >
               Cancel
             </button>
-            
-            {dialogueType === "item" ?  (<button type="form" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Add Item</button>) :
-             (<button type="button" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded" onClick={onClose}>Done</button>)}
+
+            {dialogueType === "item" ? (
+              <button
+                type="form"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+              >
+                Add Item
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+                onClick={onClose}
+              >
+                Done
+              </button>
+            )}
           </div>
         </form>
       </div>
