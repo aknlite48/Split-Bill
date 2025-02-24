@@ -49,6 +49,7 @@ export function Dialogue({
       </style>
 
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+        {/* The parent container has max-w-md, limiting how wide content can grow */}
         <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
           <h2 className="text-xl font-bold mb-4">
             {dialogueType === "item" ? "Add Item" : "Add Person"}
@@ -57,27 +58,34 @@ export function Dialogue({
           {dialogueType === "person" && people.length > 0 && (
             <div className="mb-4">
               <h3 className="font-semibold">Current People:</h3>
+
               <div className="flex flex-col items-start space-y-2 mt-2">
                 {people.map((p) => (
-                  // 5) Make this container "group relative"
                   <div
                     key={p.name}
-                    className="group relative inline-block bg-gray-50 rounded-xl px-3 py-1"
+                    // These classes ensure the box can wrap onto multiple lines:
+                    className="
+                      group
+                      inline-flex
+                      flex-wrap
+                      items-center
+                      bg-gray-50
+                      rounded-xl
+                      px-3
+                      py-1
+                      max-w-full
+                      break-words
+                      whitespace-normal
+                    "
                   >
-                    {p.name}
-                    {/* 6) The '×' is hidden by default, appears on .group:hover */}
+                    <span>{p.name}</span>
                     <button
                       type="button"
                       onClick={() => onDeletePerson(p.name)}
                       className="
                         hidden
                         group-hover:inline-block
-                        absolute
-                        top-0
-                        right-0
-                        transform
-                        -translate-y-1/2
-                        translate-x-1/2
+                        ml-2
                         text-red-500
                         hover:text-red-700
                         font-bold
@@ -114,7 +122,7 @@ export function Dialogue({
               </div>
             )}
 
-            {/* For adding an item (label on the left, single-line input w/ thicker focus underline) */}
+            {/* For adding an item */}
             {dialogueType === "item" && (
               <>
                 <div className="flex items-center space-x-2">
@@ -166,7 +174,6 @@ export function Dialogue({
               >
                 Cancel
               </button>
-
               {dialogueType === "item" ? (
                 <button
                   type="form"
