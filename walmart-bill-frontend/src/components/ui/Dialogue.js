@@ -10,6 +10,7 @@ export function Dialogue({
   setFormData,
   people = [],
   onAddNameNoClose,
+  onDeletePerson,
 }) {
   if (!isOpen) return null;
 
@@ -58,11 +59,32 @@ export function Dialogue({
               <h3 className="font-semibold">Current People:</h3>
               <div className="flex flex-col items-start space-y-2 mt-2">
                 {people.map((p) => (
+                  // 5) Make this container "group relative"
                   <div
                     key={p.name}
-                    className="inline-block bg-gray-50 rounded-xl px-3 py-1"
+                    className="group relative inline-block bg-gray-50 rounded-xl px-3 py-1"
                   >
                     {p.name}
+                    {/* 6) The '×' is hidden by default, appears on .group:hover */}
+                    <button
+                      type="button"
+                      onClick={() => onDeletePerson(p.name)}
+                      className="
+                        hidden
+                        group-hover:inline-block
+                        absolute
+                        top-0
+                        right-0
+                        transform
+                        -translate-y-1/2
+                        translate-x-1/2
+                        text-red-500
+                        hover:text-red-700
+                        font-bold
+                      "
+                    >
+                      &times;
+                    </button>
                   </div>
                 ))}
               </div>
@@ -92,7 +114,7 @@ export function Dialogue({
               </div>
             )}
 
-            {/* For adding an item (label on the left, single-line input with thicker focus underline) */}
+            {/* For adding an item (label on the left, single-line input w/ thicker focus underline) */}
             {dialogueType === "item" && (
               <>
                 <div className="flex items-center space-x-2">

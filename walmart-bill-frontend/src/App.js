@@ -1,5 +1,10 @@
-import React, { useState,useEffect,useRef } from "react";
-import {BrowserRouter as Router,Routes, Route, Link,useNavigate } from 'react-router-dom'
+import React, { useState, useEffect, useRef } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
 import { Card, CardContent } from "./components/ui/Card";
@@ -25,44 +30,40 @@ export default function App() {
   const [dialogueType, setDialogueType] = useState(""); // "item" | "person"
   const [dialogueFormData, setDialogueFormData] = useState({ name: "", price: "" });
 
+  function handleDeletePerson(nameToDelete) {
+    setPeople((prev) => prev.filter((p) => p.name !== nameToDelete));
+  }
+
   function handleAddNameWithoutClosing(name) {
-    // Only add if the name isn’t empty/duplicate, etc.
+    // Only add if the name isn’t empty
     setPeople((prev) => [...prev, { name, paidFor: {} }]);
   }
 
-
-
-
   useEffect(() => {
     const savedItems = localStorage.getItem("items");
-    const savedPeople = localStorage.getItem("people")
+    const savedPeople = localStorage.getItem("people");
     const savedTax = localStorage.getItem("tax");
     const savedTotal = localStorage.getItem("total");
 
     if (savedItems) setItems(JSON.parse(savedItems));
-    if (savedPeople) setPeople(JSON.parse(savedPeople))
+    if (savedPeople) setPeople(JSON.parse(savedPeople));
     if (savedTax) setTax(parseFloat(savedTax));
     if (savedTotal) setTotal(parseFloat(savedTotal));
   }, []);
 
-  // 🔹 Save items, tax, and total to localStorage when they change
   useEffect(() => {
     if (items.length > 0) {
       localStorage.setItem("items", JSON.stringify(items));
-    }
-    if (items.length > 0) {
       localStorage.setItem("people", JSON.stringify(people));
     }
     localStorage.setItem("tax", tax.toString());
     localStorage.setItem("total", total.toString());
-  }, [items,people, tax, total]);
-
+  }, [items, people, tax, total]);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
-  // Open the dialogue for adding a person
   const handleAddPerson = () => {
     setDialogueType("person");
     setDialogueFormData({ name: "" }); // reset
@@ -90,10 +91,6 @@ export default function App() {
     }
     setShowDialogue(false);
   };
-
-
-
-
 
   const handleTaxEdit = () => {
     setEditingTax(true);
@@ -179,21 +176,18 @@ export default function App() {
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [dragActive, setDragActive] = useState(false);
-
     const [isUploading, setIsUploading] = useState(false);
-
     const inputRef = useRef(null);
 
     const handleFileChange = (e) => {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
-  
       if (selectedFile) {
         const objectUrl = URL.createObjectURL(selectedFile);
         setPreviewUrl(objectUrl);
       }
     };
-  
+
     useEffect(() => {
       return () => {
         if (previewUrl) {
@@ -203,48 +197,44 @@ export default function App() {
     }, [previewUrl]);
 
     const handleBrowseClick = () => {
-      // Programmatically click the hidden input
       if (inputRef.current) {
         inputRef.current.click();
       }
     };
-  
-    // Drag events
+
     const handleDragOver = (e) => {
       e.preventDefault();
       e.stopPropagation();
       setDragActive(true);
     };
-  
+
     const handleDragLeave = (e) => {
       e.preventDefault();
       e.stopPropagation();
       setDragActive(false);
     };
-  
+
     const handleDrop = (e) => {
       e.preventDefault();
       e.stopPropagation();
       setDragActive(false);
-  
+
       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
         const droppedFile = e.dataTransfer.files[0];
         setFile(droppedFile);
-  
         const objectUrl = URL.createObjectURL(droppedFile);
         setPreviewUrl(objectUrl);
       }
     };
-  
+
     const handleEmptyBill = () => {
-      //setUploaded(true);
-      navigate('/bill');
+      navigate("/bill");
       setEmptyBillMode(true);
-      setPeople([])
+      setPeople([]);
       setItems([]);
       setTax(0);
       setTotal(0);
-      localStorage.clear()
+      localStorage.clear();
     };
 
     const handleUpload = async () => {
@@ -252,7 +242,7 @@ export default function App() {
       const formData = new FormData();
       formData.append("pdf", file);
       setIsUploading(true);
-  
+
       try {
         const response = await fetch("http://localhost:5001/upload", {
           method: "POST",
@@ -263,208 +253,218 @@ export default function App() {
           setItems(data.extractedData.items);
           setTax(data.extractedData.tax);
           setTotal(data.extractedData.total);
-          setPeople([])
-          //setUploaded(true);
-          navigate('/bill');
+          setPeople([]);
+          navigate("/bill");
         } else {
           console.error("Parsing failed", data.error);
         }
       } catch (error) {
         console.error("Upload failed", error);
       } finally {
-        setIsUploading(false); // Reset loading state
+        setIsUploading(false);
       }
     };
 
     return (
       <div className="p-4 max-w-2xl mx-auto">
-      <div className="space-y-4">
-      <div
-          className={`border-2 border-dashed rounded p-8 text-center cursor-pointer transition-colors
-            ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`
-          }
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={handleBrowseClick}
-        >
-          {file ? (
-            <p className="text-gray-700 font-medium">{file.name}</p>
-          ) : (
-            <p className="text-gray-500">
-              Drag &amp; drop your PDF here or <span className="text-blue-500 underline">click</span> to select
-            </p>
-          )}
-        </div>
-
-        {/* Hidden file input */}
-        <input
-          ref={inputRef}
-          type="file"
-          accept="application/pdf"
-          style={{ display: "none" }}
-          onChange={handleFileChange}
-        />
-        {previewUrl && (
-          <div className="mt-2">
-            <embed src={previewUrl} width="100%" height="500px" type="application/pdf" />
-          </div>
-        )}
-        <div className="flex space-x-2">
-        <Button onClick={handleUpload} disabled={!file || isUploading}>
-            {isUploading ? (
-              <>
-                <svg
-                  className="animate-spin h-5 w-5 mr-2 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  ></path>
-                </svg>
-                Uploading...
-              </>
+        <div className="space-y-4">
+          <div
+            className={`border-2 border-dashed rounded p-8 text-center cursor-pointer transition-colors ${
+              dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={handleBrowseClick}
+          >
+            {file ? (
+              <p className="text-gray-700 font-medium">{file.name}</p>
             ) : (
-              "Upload PDF"
+              <p className="text-gray-500">
+                Drag &amp; drop your PDF here or{" "}
+                <span className="text-blue-500 underline">click</span> to select
+              </p>
             )}
-          </Button>
+          </div>
 
-          <Button onClick={handleEmptyBill} variant="outline">
-            Empty Bill
-          </Button>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="application/pdf"
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
+          {previewUrl && (
+            <div className="mt-2">
+              <embed
+                src={previewUrl}
+                width="100%"
+                height="500px"
+                type="application/pdf"
+              />
+            </div>
+          )}
+          <div className="flex space-x-2">
+            <Button onClick={handleUpload} disabled={!file || isUploading}>
+              {isUploading ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    ></path>
+                  </svg>
+                  Uploading...
+                </>
+              ) : (
+                "Upload PDF"
+              )}
+            </Button>
+
+            <Button onClick={handleEmptyBill} variant="outline">
+              Empty Bill
+            </Button>
+          </div>
         </div>
       </div>
-      </div>
-    )
-  }
+    );
+  };
 
   const Bill_Page = () => {
     return (
       <div className="p-4 max-w-2xl mx-auto">
-      <div>
-        <div className="flex space-x-2">
-          <Button onClick={handleAddItem}>Add Item</Button>
-          <Button onClick={handleAddPerson}>Add Person</Button>
-        </div>
-        {items.map((item, index) => (
-          <Card key={index} className="p-2 mb-2 relative flex flex-col">
-            <CardContent className="flex justify-between items-center">
-              {editingIndex === index ? (
-                <>
-                  <input
-                    className="border p-1 mr-2"
-                    value={editValues.name}
-                    onChange={(e) => handleInputChange(e, "name")}
-                  />
-                  <input
-                    className="border p-1 w-16"
-                    value={editValues.price}
-                    onChange={(e) => handleInputChange(e, "price")}
-                    type="number"
-                  />
-                </>
+        <div>
+          <div className="flex space-x-2">
+            <Button onClick={handleAddItem}>Add Item</Button>
+            <Button onClick={handleAddPerson}>Add Person</Button>
+          </div>
+          {items.map((item, index) => (
+            <Card key={index} className="p-2 mb-2 relative flex flex-col">
+              <CardContent className="flex justify-between items-center">
+                {editingIndex === index ? (
+                  <>
+                    <input
+                      className="border p-1 mr-2"
+                      value={editValues.name}
+                      onChange={(e) => handleInputChange(e, "name")}
+                    />
+                    <input
+                      className="border p-1 w-16"
+                      value={editValues.price}
+                      onChange={(e) => handleInputChange(e, "price")}
+                      type="number"
+                    />
+                  </>
+                ) : (
+                  <span>
+                    {item.name} - ${item.price.toFixed(2)}
+                  </span>
+                )}
+                <div className="space-x-2 flex">
+                  {people.map((person) => (
+                    <Button
+                      key={person.name}
+                      variant={person.paidFor[index] ? "default" : "outline"}
+                      onClick={() => togglePayment(index, person.name)}
+                    >
+                      {person.name}
+                    </Button>
+                  ))}
+                  <button
+                    onClick={() => handleEditItem(index)}
+                    className="text-gray-600 hover:text-black"
+                  >
+                    {editingIndex === index ? (
+                      <Check size={20} />
+                    ) : (
+                      <Edit size={20} />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteItem(index)}
+                    className="text-gray-600 hover:text-black"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          <div className="mt-4 p-4 border rounded flex justify-between items-center">
+            <div>
+              <p>
+                <strong>Tax:</strong>
+              </p>
+            </div>
+            <div>
+              {editingTax ? (
+                <input
+                  type="number"
+                  className="border p-1 w-20 text-center"
+                  value={tempTax}
+                  onChange={handleTaxChange}
+                  onBlur={saveTax}
+                  onKeyDown={handleTaxKeyPress}
+                  autoFocus
+                />
               ) : (
-                <span>
-                  {item.name} - ${item.price.toFixed(2)}
+                <span
+                  className="cursor-pointer text-blue-600 font-bold"
+                  onClick={handleTaxEdit}
+                >
+                  ${tax.toFixed(2)}
                 </span>
               )}
-              <div className="space-x-2 flex">
-                {people.map((person) => (
-                  <Button
-                    key={person.name}
-                    variant={person.paidFor[index] ? "default" : "outline"}
-                    onClick={() => togglePayment(index, person.name)}
-                  >
-                    {person.name}
-                  </Button>
-                ))}
-                <button
-                  onClick={() => handleEditItem(index)}
-                  className="text-gray-600 hover:text-black"
-                >
-                  {editingIndex === index ? <Check size={20} /> : <Edit size={20} />}
-                </button>
-                <button
-                  onClick={() => handleDeleteItem(index)}
-                  className="text-gray-600 hover:text-black"
-                >
-                  <Trash2 size={20} />
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        {/* Tax and total */}
-        <div className="mt-4 p-4 border rounded flex justify-between items-center">
-          <div>
-            <p>
-              <strong>Tax:</strong>
-            </p>
-          </div>
-          <div>
-            {editingTax ? (
+            </div>
+            <div className="flex items-center">
               <input
-                type="number"
-                className="border p-1 w-20 text-center"
-                value={tempTax}
-                onChange={handleTaxChange}
-                onBlur={saveTax}
-                onKeyDown={handleTaxKeyPress}
-                autoFocus
+                type="checkbox"
+                className="mr-2"
+                checked={splitTax}
+                onChange={() => setSplitTax(!splitTax)}
               />
-            ) : (
-              <span
-                className="cursor-pointer text-blue-600 font-bold"
-                onClick={handleTaxEdit}
-              >
-                ${tax.toFixed(2)}
-              </span>
-            )}
+              <label>Split Tax</label>
+            </div>
           </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              className="mr-2"
-              checked={splitTax}
-              onChange={() => setSplitTax(!splitTax)}
-            />
-            <label>Split Tax</label>
-          </div>
-        </div>
-        <div className="mt-4 p-4 border rounded">
-          <p>
-            <strong>Final Total:</strong> ${calculatedTotal.toFixed(2)}
-          </p>
-        </div>
-        <div className="mt-4 p-4 border rounded">
-          <h3 className="font-bold">Split Amounts:</h3>
-          {calculateSplit().map((person) => (
-            <p key={person.name}>
-              {person.name}: ${person.amount.toFixed(2)}
+
+          <div className="mt-4 p-4 border rounded">
+            <p>
+              <strong>Final Total:</strong> ${calculatedTotal.toFixed(2)}
             </p>
-          ))}
+          </div>
+
+          <div className="mt-4 p-4 border rounded">
+            <h3 className="font-bold">Split Amounts:</h3>
+            {calculateSplit().map((person) => (
+              <p key={person.name}>
+                {person.name}: ${person.amount.toFixed(2)}
+              </p>
+            ))}
+          </div>
         </div>
       </div>
-      </div>
-    )
-  }
+    );
+  };
 
   return (
     <Router>
-            <Dialogue
+      {/* Dialogue for adding Person or Item */}
+      <Dialogue
         isOpen={showDialogue}
         onClose={() => setShowDialogue(false)}
         onSubmit={handleDialogueSubmit}
@@ -472,13 +472,13 @@ export default function App() {
         formData={dialogueFormData}
         setFormData={setDialogueFormData}
         people={people}
-        onAddNameNoClose={handleAddNameWithoutClosing} 
+        onAddNameNoClose={handleAddNameWithoutClosing}
+        onDeletePerson={handleDeletePerson}
       />
       <Routes>
-        <Route path='/upload' element={<Upload_Page/>} />
-        <Route path='/bill' element={<Bill_Page/>} />
+        <Route path="/upload" element={<Upload_Page />} />
+        <Route path="/bill" element={<Bill_Page />} />
       </Routes>
-  
     </Router>
   );
 }
