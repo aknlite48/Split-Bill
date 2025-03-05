@@ -239,12 +239,26 @@ export default function App() {
 
     const handleUpload = async () => {
       if (!file) return;
+    
       const formData = new FormData();
-      formData.append("pdf", file);
+      let endpoint = "";
+    
+      // Check the file type
+      if (file.type === "application/pdf") {
+        formData.append("pdf", file);
+        endpoint = "http://localhost:5001/upload-pdf";
+      } else if (file.type.startsWith("image/")) {
+        formData.append("image", file);
+        endpoint = "http://localhost:5001/upload-image";
+      } else {
+        console.error("Unsupported file type");
+        return;
+      }
+    
       setIsUploading(true);
-
+    
       try {
-        const response = await fetch("http://localhost:5001/upload", {
+        const response = await fetch(endpoint, {
           method: "POST",
           body: formData,
         });
@@ -264,6 +278,7 @@ export default function App() {
         setIsUploading(false);
       }
     };
+    
 
     return (
       <div className="p-4 max-w-2xl mx-auto">
