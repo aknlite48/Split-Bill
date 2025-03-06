@@ -105,79 +105,91 @@ app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
 // New endpoint to handle image uploads
 app.post("/upload-image", upload.single("image"), async (req, res) => {
     console.log("📥 Received request to /upload-image");
-
     if (!req.file) {
-        console.log("❌ No image uploaded");
-        return res.status(400).json({ error: "No image uploaded" });
+      console.log("❌ No image uploaded");
+      return res.status(400).json({ error: "No image uploaded" });
     }
-
+    
     try {
-        const filePath = req.file.path;
-
-        // Step 1: Extract text from image using Tesseract.js
-        console.log("🔍 Extracting text from image...");
-        const { data: { text: extractedText } } = await Tesseract.recognize(filePath, 'eng');
-        console.log("✅ Extracted text:", extractedText.substring(0, 500), "...");
-
-        // Step 2: Send extracted text to OpenAI API for structured parsing
-        console.log("🚀 Sending extracted text to OpenAI...");
-
-        const input_prompt = `Extract a structured list of items, their costs, tax, and total from this 
-        structured data parsed from a bill image. 
-        display the parsed items in json format. 
-        the list of parsed items with their prices should be in a tuple list,
-        each item in the list should have the "name" attribute and the "price" attribute,
-        the tax and final price should be different attributes and should be called "tax" and "total".
-        return pure JSON without code fences or additional text.`;
-
-        const openaiResponse = await axios.post(
-            "https://api.openai.com/v1/chat/completions",
-            {
-                model: "gpt-4-turbo",  // or "gpt-3.5-turbo" if needed
-                messages: [
-                    { role: "system", content: input_prompt },
-                    { role: "user", content: extractedText }
-                ],
-                temperature: 0
+      const filePath = req.file.path;
+      
+      // Read the image file as base64
+      const imageBuffer = fs.readFileSync(filePath);
+      const base64Image = imageBuffer.toString('base64');
+      
+      console.log("🚀 Sending image directly to OpenAI Vision API...");
+      
+      const openaiResponse = await axios.post(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          model: "gpt-4-turbo", // Using GPT-4 Vision model
+          messages: [
+            { 
+              role: "system", 
+              content: `Extract a structured list of items, their costs, tax, and total from this bill image.
+                        Return the data in JSON format with the following structure:
+                        {
+                          "items": [{"name": "item name", "price": price_as_number}, ...],
+                          "tax": tax_amount_as_number,
+                          "total": total_amount_as_number
+                        }
+                        Return pure JSON without code fences or additional text.`
             },
-            {
-                headers: {
-                    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-                    "Content-Type": "application/json"
+            { 
+              role: "user", 
+              content: [
+                { type: "text", text: "Extract the bill information from this image." },
+                { 
+                  type: "image_url", 
+                  image_url: {
+                    url: `data:image/${req.file.mimetype};base64,${base64Image}`
+                  }
                 }
+              ]
             }
-        );
-
-        console.log("✅ Received structured response from OpenAI:", openaiResponse.data);
-
-        // Step 3: Delete image file after processing
-        fs.unlinkSync(filePath);
-
-        // Step 4: Send structured data to frontend
-        try {
-            const final_message = JSON.parse(openaiResponse.data.choices[0].message.content);
-            console.log(final_message)
-            res.json({
-                success: true,
-                extractedData: final_message
-            });
-        } catch (error1) {
-            console.error("❌ JSON parsing failed:", error1.message);
-            res.status(500).json({
-                success: false,
-                error: "Parsing failed",
-                details: error1.message
-            });
+          ],
+          max_tokens: 1000,
+          temperature: 0
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            "Content-Type": "application/json"
+          }
         }
-    } catch (error) {
-        console.error("❌ Error processing image:", error.response?.data || error.message);
-        res.status(500).json({
-            success: false,
-            error: "Image processing failed",
-            details: error.response?.data || error.message
+      );
+      
+      console.log("✅ Received structured response from OpenAI Vision");
+      
+      // Delete image file after processing
+      fs.unlinkSync(filePath);
+      
+      // Send structured data to frontend
+      try {
+        const final_message = JSON.parse(openaiResponse.data.choices[0].message.content);
+        console.log(final_message);
+        res.json({
+          success: true,
+          extractedData: final_message
         });
+      } catch (error1) {
+        console.error("❌ JSON parsing failed:", error1.message);
+        res.status(500).json({
+          success: false,
+          error: "Parsing failed",
+          details: error1.message,
+          rawContent: openaiResponse.data.choices[0].message.content
+        });
+      }
+    } catch (error) {
+      console.error("❌ Error processing image:", error.response?.data || error.message);
+      res.status(500).json({
+        success: false,
+        error: "Image processing failed",
+        details: error.response?.data || error.message
+      });
     }
-});
+  });
 
 // Start the server
 app.listen(PORT, () => {
