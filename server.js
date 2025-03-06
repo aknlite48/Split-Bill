@@ -4,7 +4,9 @@ const axios = require("axios");
 const fs = require("fs");
 const pdfParse = require("pdf-parse");
 const cors = require("cors");
-const Tesseract = require("tesseract.js");
+//const Tesseract = require("tesseract.js");
+const sharp = require('sharp');
+const sizeOf = require('image-size');
 require("dotenv").config();
 
 const app = express();
@@ -113,11 +115,59 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
     try {
       const filePath = req.file.path;
       
-      // Read the image file as base64
+      // Check original image size and dimensions
       const imageBuffer = fs.readFileSync(filePath);
-      const base64Image = imageBuffer.toString('base64');
+      const MAX_SIZE_MB = 15; // Max size in MB before base64 encoding
+      const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+      console.log(`📏 Original image size: ${(imageBuffer.length / (1024 * 1024)).toFixed(2)}MB`);
+      
+      let processedImageBuffer;
+      let base64Image;
+      
+      // Process image if needed
+      if (imageBuffer.length > MAX_SIZE_BYTES) {
+        console.log("🔄 Image too large, resizing...");
+        
+        try {
+          // Get dimensions
+          const dimensions = sizeOf(imageBuffer);
+          console.log(`📐 Original dimensions: ${dimensions.width}x${dimensions.height}`);
+          
+          // Calculate scaling factor to get under size limit
+          // Using an approximate compression ratio based on JPEG quality
+          const scaleFactor = Math.sqrt(MAX_SIZE_BYTES / (imageBuffer.length * 1.5));
+          const newWidth = Math.floor(dimensions.width * scaleFactor);
+          const newHeight = Math.floor(dimensions.height * scaleFactor);
+          
+          console.log(`🔍 Resizing to: ${newWidth}x${newHeight}`);
+          
+          // Resize and optimize image
+          processedImageBuffer = await sharp(imageBuffer)
+            .resize(newWidth, newHeight)
+            .jpeg({ quality: 85, progressive: true }) // Use JPEG for better compression
+            .toBuffer();
+            
+          console.log(`📏 New image size: ${(processedImageBuffer.length / (1024 * 1024)).toFixed(2)}MB`);
+          base64Image = processedImageBuffer.toString('base64');
+        } catch (resizeError) {
+          console.error("❌ Error resizing image:", resizeError);
+          return res.status(400).json({ 
+            success: false, 
+            error: "Image processing failed", 
+            details: "Unable to resize image. Try uploading a smaller image." 
+          });
+        }
+      } else {
+        // Use original image if size is acceptable
+        processedImageBuffer = imageBuffer;
+        base64Image = imageBuffer.toString('base64');
+      }
+      
+      // Determine image mime type for base64 encoding
+      const imageMimeType = req.file.mimetype || (processedImageBuffer !== imageBuffer ? 'image/jpeg' : 'image/png');
       
       console.log("🚀 Sending image directly to OpenAI Vision API...");
+      console.log(`📄 Using mime type: ${imageMimeType}`);
       
       const openaiResponse = await axios.post(
         "https://api.openai.com/v1/chat/completions",
@@ -142,7 +192,7 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
                 { 
                   type: "image_url", 
                   image_url: {
-                    url: `data:image/${req.file.mimetype};base64,${base64Image}`
+                    url: `data:image/${imageMimeType};base64,${base64Image}`
                   }
                 }
               ]
@@ -161,8 +211,17 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
       
       console.log("✅ Received structured response from OpenAI Vision");
       
-      // Delete image file after processing
+      // Delete image files after processing
       fs.unlinkSync(filePath);
+      
+      // If we created a temporary resized file, also remove that
+      if (processedImageBuffer !== imageBuffer && req.tempResizedPath) {
+        try {
+          fs.unlinkSync(req.tempResizedPath);
+        } catch (err) {
+          console.log("⚠️ Could not delete temporary resized image:", err.message);
+        }
+      }
       
       // Send structured data to frontend
       try {
@@ -181,15 +240,24 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
           rawContent: openaiResponse.data.choices[0].message.content
         });
       }
-    } catch (error) {
+        } catch (error) {
       console.error("❌ Error processing image:", error.response?.data || error.message);
+      
+      // Attempt to clean up any files if an error occurs
+      try {
+        if (req.file && req.file.path) fs.unlinkSync(req.file.path);
+        if (req.tempResizedPath) fs.unlinkSync(req.tempResizedPath);
+      } catch (cleanupError) {
+        console.log("⚠️ Error during file cleanup:", cleanupError.message);
+      }
+      
       res.status(500).json({
         success: false,
         error: "Image processing failed",
         details: error.response?.data || error.message
       });
     }
-  });
+});
 
 // Start the server
 app.listen(PORT, () => {
