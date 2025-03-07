@@ -379,52 +379,73 @@ export default function App() {
           </div>
           {items.map((item, index) => (
             <Card key={index} className="p-2 mb-2 relative flex flex-col">
-              <CardContent className="flex justify-between items-center">
-                {editingIndex === index ? (
-                  <>
-                    <input
-                      className="border p-1 mr-2"
-                      value={editValues.name}
-                      onChange={(e) => handleInputChange(e, "name")}
-                    />
-                    <input
-                      className="border p-1 w-16"
-                      value={editValues.price}
-                      onChange={(e) => handleInputChange(e, "price")}
-                      type="number"
-                    />
-                  </>
-                ) : (
-                  <span>
-                    {item.name} - ${item.price.toFixed(2)}
-                  </span>
-                )}
-                <div className="space-x-2 flex">
-                  {people.map((person) => (
-                    <Button
-                      key={person.name}
-                      variant={person.paidFor[index] ? "default" : "outline"}
-                      onClick={() => togglePayment(index, person.name)}
+              <CardContent>
+                <div className="flex flex-col space-y-2">
+                  {/* Item name and price */}
+                  {editingIndex === index ? (
+                    <div className="flex space-x-2">
+                      <input
+                        className="border p-1 flex-grow"
+                        value={editValues.name}
+                        onChange={(e) => handleInputChange(e, "name")}
+                      />
+                      <input
+                        className="border p-1 w-24"
+                        value={editValues.price}
+                        onChange={(e) => handleInputChange(e, "price")}
+                        type="number"
+                      />
+                    </div>
+                  ) : (
+                    <div className="font-medium">
+                      {item.name} - ${item.price.toFixed(2)}
+                    </div>
+                  )}
+                  
+                  {/* Person buttons with horizontal scrolling */}
+                  <div className="relative">
+                    <div className="overflow-x-auto" style={{ 
+                      padding: "4px 0",
+                      WebkitOverflowScrolling: "touch"
+                    }}>
+                      <div style={{
+                        display: "flex",
+                        gap: "8px",
+                        minWidth: "min-content"
+                      }}>
+                        {people.map((person) => (
+                          <Button
+                            key={person.name}
+                            variant={person.paidFor[index] ? "default" : "outline"}
+                            onClick={() => togglePayment(index, person.name)}
+                            style={{ whiteSpace: "nowrap" }}
+                          >
+                            {person.name}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Edit/Delete buttons */}
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={() => handleEditItem(index)}
+                      className="text-gray-600 hover:text-black p-1"
                     >
-                      {person.name}
-                    </Button>
-                  ))}
-                  <button
-                    onClick={() => handleEditItem(index)}
-                    className="text-gray-600 hover:text-black"
-                  >
-                    {editingIndex === index ? (
-                      <Check size={20} />
-                    ) : (
-                      <Edit size={20} />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteItem(index)}
-                    className="text-gray-600 hover:text-black"
-                  >
-                    <Trash2 size={20} />
-                  </button>
+                      {editingIndex === index ? (
+                        <Check size={20} />
+                      ) : (
+                        <Edit size={20} />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteItem(index)}
+                      className="text-gray-600 hover:text-black p-1"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
