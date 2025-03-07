@@ -45,61 +45,82 @@ export function Dialogue({
           input[type="number"] {
             -moz-appearance: textfield;
           }
+          
+          /* Custom scrollbar styles */
+          .people-list::-webkit-scrollbar {
+            width: 6px;
+          }
+          
+          .people-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+          }
+          
+          .people-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+          }
+          
+          .people-list::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+          }
         `}
       </style>
 
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-        {/* The parent container has max-w-md, limiting how wide content can grow */}
-        <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
+        {/* The parent container has max height and width */}
+        <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md max-h-[80vh] flex flex-col">
           <h2 className="text-xl font-bold mb-4">
             {dialogueType === "item" ? "Add Item" : "Add Person"}
           </h2>
 
           {dialogueType === "person" && people.length > 0 && (
-            <div className="mb-4">
+            <div className="mb-4 flex-shrink-0">
               <h3 className="font-semibold">Current People:</h3>
 
-              <div className="flex flex-col items-start space-y-2 mt-2">
-                {people.map((p) => (
-                  <div
-                    key={p.name}
-                    // These classes ensure the box can wrap onto multiple lines:
-                    className="
-                      group
-                      inline-flex
-                      flex-wrap
-                      items-center
-                      bg-gray-50
-                      rounded-xl
-                      px-3
-                      py-1
-                      max-w-full
-                      break-words
-                      whitespace-normal
-                    "
-                  >
-                    <span>{p.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => onDeletePerson(p.name)}
+              <div className="people-list overflow-y-auto max-h-[30vh] mt-2 pr-2">
+                <div className="flex flex-col items-start space-y-2">
+                  {people.map((p) => (
+                    <div
+                      key={p.name}
+                      // These classes ensure the box can wrap onto multiple lines:
                       className="
-                        hidden
-                        group-hover:inline-block
-                        ml-2
-                        text-red-500
-                        hover:text-red-700
-                        font-bold
+                        group
+                        inline-flex
+                        flex-wrap
+                        items-center
+                        bg-gray-50
+                        rounded-xl
+                        px-3
+                        py-1
+                        max-w-full
+                        break-words
+                        whitespace-normal
                       "
                     >
-                      &times;
-                    </button>
-                  </div>
-                ))}
+                      <span>{p.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => onDeletePerson(p.name)}
+                        className="
+                          hidden
+                          group-hover:inline-block
+                          ml-2
+                          text-red-500
+                          hover:text-red-700
+                          font-bold
+                        "
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 flex-shrink-0">
             {/* For adding a person */}
             {dialogueType === "person" && (
               <div className="flex items-center">
@@ -176,7 +197,7 @@ export function Dialogue({
               </button>
               {dialogueType === "item" ? (
                 <button
-                  type="form"
+                  type="submit"
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
                 >
                   Add Item
