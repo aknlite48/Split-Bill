@@ -4,12 +4,14 @@ import {
   Routes,
   Route,
   useNavigate,
+  Navigate
 } from "react-router-dom";
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
 import { Card, CardContent } from "./components/ui/Card";
 import { Trash2, Edit, Check } from "lucide-react";
 import { Dialogue } from "./components/ui/Dialogue";
+import { NavBar } from "./components/NavBar"; // Import the new NavBar component
 
 export default function App() {
   const [file, setFile] = useState(null);
@@ -35,7 +37,7 @@ export default function App() {
   }
 
   function handleAddNameWithoutClosing(name) {
-    // Only add if the name isn’t empty
+    // Only add if the name isn't empty
     setPeople((prev) => [...prev, { name, paidFor: {} }]);
   }
 
@@ -305,18 +307,26 @@ export default function App() {
           <input
             ref={inputRef}
             type="file"
-            accept="application/pdf"
+            accept="application/pdf,image/*" // Updated to accept both PDF and images
             style={{ display: "none" }}
             onChange={handleFileChange}
           />
           {previewUrl && (
             <div className="mt-2">
-              <embed
-                src={previewUrl}
-                width="100%"
-                height="500px"
-                type="application/pdf"
-              />
+              {file?.type === "application/pdf" ? (
+                <embed
+                  src={previewUrl}
+                  width="100%"
+                  height="500px"
+                  type="application/pdf"
+                />
+              ) : (
+                <img 
+                  src={previewUrl} 
+                  alt="Receipt preview" 
+                  className="max-w-full mx-auto max-h-96 object-contain" 
+                />
+              )}
             </div>
           )}
           <div className="flex space-x-2">
@@ -346,7 +356,7 @@ export default function App() {
                   Uploading...
                 </>
               ) : (
-                "Upload PDF"
+                "Upload Receipt"
               )}
             </Button>
 
@@ -490,9 +500,15 @@ export default function App() {
         onAddNameNoClose={handleAddNameWithoutClosing}
         onDeletePerson={handleDeletePerson}
       />
+      
+      {/* Add the NavBar component */}
+      <NavBar />
+      
       <Routes>
         <Route path="/upload" element={<Upload_Page />} />
         <Route path="/bill" element={<Bill_Page />} />
+        {/* Add redirect from root to upload page */}
+        <Route path="/" element={<Navigate to="/upload" replace />} />
       </Routes>
     </Router>
   );
