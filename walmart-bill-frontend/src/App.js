@@ -49,12 +49,12 @@ export default function App() {
     const savedItems = localStorage.getItem("items");
     const savedPeople = localStorage.getItem("people");
     const savedTax = localStorage.getItem("tax");
-    const savedTotal = localStorage.getItem("total");
+    //const savedTotal = localStorage.getItem("total");
 
     if (savedItems) setItems(JSON.parse(savedItems));
     if (savedPeople) setPeople(JSON.parse(savedPeople));
     if (savedTax) setTax(parseFloat(savedTax));
-    if (savedTotal) setTotal(parseFloat(savedTotal));
+    //if (savedTotal) setTotal(parseFloat(savedTotal));
   }, []);
 
   useEffect(() => {
@@ -62,8 +62,8 @@ export default function App() {
       localStorage.setItem("items", JSON.stringify(items));
       localStorage.setItem("people", JSON.stringify(people));
     }
-    localStorage.setItem("tax", tax.toString());
-    localStorage.setItem("total", total.toString());
+    if (tax>0) localStorage.setItem("tax", tax.toString());
+    //localStorage.setItem("total", total.toString());
   }, [items, people, tax, total]);
 
   const handleFileChange = (e) => {
