@@ -58,8 +58,17 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (items.length > 0) localStorage.setItem("items", JSON.stringify(items));
-    if (people.length > 0) localStorage.setItem("people", JSON.stringify(people));
+    if (items.length > 0) {
+      localStorage.setItem("items", JSON.stringify(items));
+    } else {
+      localStorage.removeItem("items");
+    }
+    
+    if (people.length > 0) {
+      localStorage.setItem("people", JSON.stringify(people));
+    } else {
+      localStorage.removeItem("people");
+    }
     if (tax>0) localStorage.setItem("tax", tax.toString());
     //localStorage.setItem("total", total.toString());
   }, [items, people, tax, total]);
