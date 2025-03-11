@@ -22,15 +22,19 @@ export default function App() {
   const [uploaded, setUploaded] = useState(false);
   const [emptyBillMode, setEmptyBillMode] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
-  const [editValues, setEditValues] = useState({ name: "", price: "" });
   const [splitTax, setSplitTax] = useState(false);
   const [editingTax, setEditingTax] = useState(false);
   const [tempTax, setTempTax] = useState(tax);
+  const [editValues, setEditValues] = useState({ name: "", price: "" });
 
   // Dialogue state
   const [showDialogue, setShowDialogue] = useState(false);
   const [dialogueType, setDialogueType] = useState(""); // "item" | "person"
   const [dialogueFormData, setDialogueFormData] = useState({ name: "", price: "" });
+
+  // Refs for edit inputs
+  const nameInputRef = useRef(null);
+  const priceInputRef = useRef(null);
 
   function handleDeletePerson(nameToDelete) {
     setPeople((prev) => prev.filter((p) => p.name !== nameToDelete));
@@ -132,29 +136,29 @@ export default function App() {
 
   const handleDeleteItem = (index) => {
     setItems((prevItems) => prevItems.filter((_, i) => i !== index));
+    if (editingIndex === index) {
+      setEditingIndex(null);
+    }
   };
 
   const handleEditItem = (index) => {
     if (editingIndex === index) {
-      setItems((prevItems) =>
-        prevItems.map((item, i) =>
-          i === index
-            ? {
-                name: editValues.name,
-                price: parseFloat(editValues.price) || 0,
-              }
-            : item
-        )
-      );
+      // Save the edited values
+      const updatedItems = [...items];
+      const newName = nameInputRef.current ? nameInputRef.current.value : items[index].name;
+      const newPrice = priceInputRef.current ? parseFloat(priceInputRef.current.value) || 0 : items[index].price;
+      
+      updatedItems[index] = {
+        name: newName,
+        price: newPrice
+      };
+      
+      setItems(updatedItems);
       setEditingIndex(null);
     } else {
-      setEditValues({ name: items[index].name, price: items[index].price });
+      // Start editing - get the current values
       setEditingIndex(index);
     }
-  };
-
-  const handleInputChange = (e, field) => {
-    setEditValues({ ...editValues, [field]: e.target.value });
   };
 
   const calculatedTotal = items.reduce((sum, item) => sum + item.price, 0) + tax;
@@ -385,15 +389,17 @@ export default function App() {
                   {editingIndex === index ? (
                     <div className="flex space-x-2">
                       <input
+                        ref={nameInputRef}
                         className="border p-1 flex-grow"
-                        value={editValues.name}
-                        onChange={(e) => handleInputChange(e, "name")}
+                        type="text"
+                        defaultValue={item.name}
+                        autoFocus
                       />
                       <input
+                        ref={priceInputRef}
                         className="border p-1 w-24"
-                        value={editValues.price}
-                        onChange={(e) => handleInputChange(e, "price")}
                         type="number"
+                        defaultValue={item.price}
                       />
                     </div>
                   ) : (
