@@ -381,13 +381,26 @@ export default function App() {
   };
 
   const Bill_Page = () => {
+    const [showSplitDialog, setShowSplitDialog] = useState(false);
+    
     return (
-      <div className="p-4 max-w-2xl mx-auto">
-        <div>
+      <div className="flex flex-col h-[100vh] max-w-2xl mx-auto overflow-hidden">
+        {/* Fixed header with buttons */}
+        <div className="p-4 border-b bg-white flex justify-between items-center">
           <div className="flex space-x-2">
             <Button onClick={handleAddItem}>Add Item</Button>
             <Button onClick={handleAddPerson}>Add Person</Button>
           </div>
+          <Button 
+            onClick={() => setShowSplitDialog(true)} 
+            variant="outline"
+          >
+            View Split
+          </Button>
+        </div>
+        
+        {/* Scrollable items section - takes available space between header and footer */}
+        <div className="flex-1 overflow-y-auto p-4 pb-2">
           {items.map((item, index) => (
             <Card key={index} className="p-2 mb-2 relative flex flex-col">
               <CardContent>
@@ -463,8 +476,11 @@ export default function App() {
               </CardContent>
             </Card>
           ))}
-
-          <div className="mt-4 p-4 border rounded flex justify-between items-center">
+        </div>
+        
+        {/* Fixed footer with tax and total - always visible */}
+        <div className="p-4 border-t bg-white sticky bottom-0 z-10">
+          <div className="mb-2 p-3 border rounded flex justify-between items-center">
             <div>
               <p>
                 <strong>Tax:</strong>
@@ -500,22 +516,46 @@ export default function App() {
               <label>Split Tax</label>
             </div>
           </div>
-
-          <div className="mt-4 p-4 border rounded">
+  
+          <div className="p-3 border rounded">
             <p>
               <strong>Final Total:</strong> ${calculatedTotal.toFixed(2)}
             </p>
           </div>
-
-          <div className="mt-4 p-4 border rounded">
-            <h3 className="font-bold">Split Amounts:</h3>
-            {calculateSplit().map((person) => (
-              <p key={person.name}>
-                {person.name}: ${person.amount.toFixed(2)}
-              </p>
-            ))}
-          </div>
         </div>
+        
+        {/* Split Details Dialog */}
+        {showSplitDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Split Details</h3>
+                <button 
+                  onClick={() => setShowSplitDialog(false)}
+                  className="p-1 hover:bg-gray-100 rounded-full"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {calculateSplit().map((person) => (
+                  <div key={person.name} className="py-2 border-b last:border-b-0 flex justify-between">
+                    <span className="font-medium">{person.name}</span>
+                    <span className="font-bold">${person.amount.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 flex justify-end">
+                <Button onClick={() => setShowSplitDialog(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
