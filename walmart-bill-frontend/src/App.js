@@ -255,14 +255,16 @@ export default function App() {
     
       const formData = new FormData();
       let endpoint = "";
+      let call_point = process.env.REACT_APP_LOCAL_IP
+      endpoint+=call_point ? call_point : "http://localhost"
     
       // Check the file type
       if (file.type === "application/pdf") {
         formData.append("pdf", file);
-        endpoint = "http://localhost:5001/upload-pdf";
+        endpoint += ":5001/upload-pdf";
       } else if (file.type.startsWith("image/")) {
         formData.append("image", file);
-        endpoint = "http://localhost:5001/upload-image";
+        endpoint += ":5001/upload-image";
       } else {
         console.error("Unsupported file type");
         return;
