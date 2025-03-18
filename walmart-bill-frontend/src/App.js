@@ -211,203 +211,249 @@ const handleDialogueSubmit = () => {
     });
   };
 
-  const Upload_Page = () => {
-    const navigate = useNavigate();
-    const [file, setFile] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState(null);
-    const [dragActive, setDragActive] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
-    const inputRef = useRef(null);
+// Modify your Upload_Page component to include an error card
+const Upload_Page = () => {
+  const navigate = useNavigate();
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  // Add a new state for error handling
+  const [uploadError, setUploadError] = useState(null);
+  const inputRef = useRef(null);
 
-    const handleFileChange = (e) => {
-      const selectedFile = e.target.files[0];
-      setFile(selectedFile);
-      if (selectedFile) {
-        const objectUrl = URL.createObjectURL(selectedFile);
-        setPreviewUrl(objectUrl);
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    if (selectedFile) {
+      const objectUrl = URL.createObjectURL(selectedFile);
+      setPreviewUrl(objectUrl);
+    }
+    // Clear any previous errors when a new file is selected
+    setUploadError(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
       }
     };
+  }, [previewUrl]);
 
-    useEffect(() => {
-      return () => {
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-        }
-      };
-    }, [previewUrl]);
+  const handleBrowseClick = () => {
+    if (inputRef.current) {
+      inputRef.current.click();
+    }
+  };
 
-    const handleBrowseClick = () => {
-      if (inputRef.current) {
-        inputRef.current.click();
-      }
-    };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
 
-    const handleDragOver = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDragActive(true);
-    };
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
 
-    const handleDragLeave = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDragActive(false);
-    };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
 
-    const handleDrop = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const droppedFile = e.dataTransfer.files[0];
+      setFile(droppedFile);
+      const objectUrl = URL.createObjectURL(droppedFile);
+      setPreviewUrl(objectUrl);
+      // Clear any previous errors
+      setUploadError(null);
+    }
+  };
 
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        const droppedFile = e.dataTransfer.files[0];
-        setFile(droppedFile);
-        const objectUrl = URL.createObjectURL(droppedFile);
-        setPreviewUrl(objectUrl);
-      }
-    };
+  const handleEmptyBill = () => {
+    navigate("/bill");
+    setEmptyBillMode(true);
+    setPeople([]);
+    setItems([]);
+    setTax(0);
+    setTotal(0);
+    localStorage.clear();
+  };
 
-    const handleEmptyBill = () => {
-      navigate("/bill");
-      setEmptyBillMode(true);
-      setPeople([]);
-      setItems([]);
-      setTax(0);
-      setTotal(0);
-      localStorage.clear();
-    };
-
-    const handleUpload = async () => {
-      if (!file) return;
-    
-      const formData = new FormData();
-      let endpoint = "";
-      let call_point = process.env.REACT_APP_LOCAL_IP
-      endpoint+=call_point ? call_point : "http://localhost"
-    
-      // Check the file type
-      if (file.type === "application/pdf") {
-        formData.append("pdf", file);
-        endpoint += ":5001/upload-pdf";
-      } else if (file.type.startsWith("image/")) {
-        formData.append("image", file);
-        endpoint += ":5001/upload-image";
+  const handleUpload = async () => {
+    if (!file) return;
+  
+    const formData = new FormData();
+    let endpoint = "";
+    let call_point = process.env.REACT_APP_LOCAL_IP
+    endpoint+=call_point ? call_point : "http://localhost"
+  
+    // Check the file type
+    if (file.type === "application/pdf") {
+      formData.append("pdf", file);
+      endpoint += ":5001/upload-pdf";
+    } else if (file.type.startsWith("image/")) {
+      formData.append("image", file);
+      endpoint += ":5001/upload-image";
+    } else {
+      // Set error for unsupported file type
+      setUploadError("Unsupported file type. Please upload a PDF or image file.");
+      return;
+    }
+  
+    setIsUploading(true);
+    setUploadError(null); // Clear previous errors
+  
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        body: formData,
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setItems(data.extractedData.items);
+        setTax(data.extractedData.tax);
+        setTotal(data.extractedData.total);
+        setPeople([]);
+        navigate("/bill");
       } else {
-        console.error("Unsupported file type");
-        return;
+        // Set error from the API
+        setUploadError(data.error || "Failed to parse receipt. Please try a different image or upload manually.");
       }
-    
-      setIsUploading(true);
-    
-      try {
-        const response = await fetch(endpoint, {
-          method: "POST",
-          body: formData,
-        });
-        const data = await response.json();
-        if (data.success) {
-          setItems(data.extractedData.items);
-          setTax(data.extractedData.tax);
-          setTotal(data.extractedData.total);
-          setPeople([]);
-          navigate("/bill");
-        } else {
-          console.error("Parsing failed", data.error);
-        }
-      } catch (error) {
-        console.error("Upload failed", error);
-      } finally {
-        setIsUploading(false);
-      }
-    };
-    
+    } catch (error) {
+      // Set error for network/server issues
+      setUploadError("Failed to upload. Check your internet connection or try again later.");
+      console.error("Upload failed", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  // Function to dismiss the error
+  const dismissError = () => {
+    setUploadError(null);
+  };
 
-    return (
-      <div className="p-4 max-w-2xl mx-auto">
-        <div className="space-y-4">
-          <div
-            className={`border-2 border-dashed rounded p-8 text-center cursor-pointer transition-colors ${
-              dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={handleBrowseClick}
-          >
-            {file ? (
-              <p className="text-gray-700 font-medium">{file.name}</p>
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      <div className="space-y-4">
+        {/* Error Card */}
+        {uploadError && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm animate-fade-in">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-red-800">Upload Failed</h3>
+                <div className="mt-1 text-sm text-red-700">
+                  <p>{uploadError}</p>
+                </div>
+              </div>
+              <button 
+                onClick={dismissError} 
+                className="ml-auto flex-shrink-0 text-red-500 hover:text-red-700"
+              >
+                <span className="sr-only">Dismiss</span>
+                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+      
+        <div
+          className={`border-2 border-dashed rounded p-8 text-center cursor-pointer transition-colors ${
+            dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={handleBrowseClick}
+        >
+          {file ? (
+            <p className="text-gray-700 font-medium">{file.name}</p>
+          ) : (
+            <p className="text-gray-500">
+              Drag &amp; drop your PDF here or{" "}
+              <span className="text-blue-500 underline">click</span> to select
+            </p>
+          )}
+        </div>
+
+        <input
+          ref={inputRef}
+          type="file"
+          accept="application/pdf,image/*"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+        {previewUrl && (
+          <div className="mt-2">
+            {file?.type === "application/pdf" ? (
+              <embed
+                src={previewUrl}
+                width="100%"
+                height="500px"
+                type="application/pdf"
+              />
             ) : (
-              <p className="text-gray-500">
-                Drag &amp; drop your PDF here or{" "}
-                <span className="text-blue-500 underline">click</span> to select
-              </p>
+              <img 
+                src={previewUrl} 
+                alt="Receipt preview" 
+                className="max-w-full mx-auto max-h-96 object-contain" 
+              />
             )}
           </div>
+        )}
+        <div className="flex space-x-2">
+          <Button onClick={handleUpload} disabled={!file || isUploading}>
+            {isUploading ? (
+              <>
+                <svg
+                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+                Uploading...
+              </>
+            ) : (
+              "Upload Receipt"
+            )}
+          </Button>
 
-          <input
-            ref={inputRef}
-            type="file"
-            accept="application/pdf,image/*" // Updated to accept both PDF and images
-            style={{ display: "none" }}
-            onChange={handleFileChange}
-          />
-          {previewUrl && (
-            <div className="mt-2">
-              {file?.type === "application/pdf" ? (
-                <embed
-                  src={previewUrl}
-                  width="100%"
-                  height="500px"
-                  type="application/pdf"
-                />
-              ) : (
-                <img 
-                  src={previewUrl} 
-                  alt="Receipt preview" 
-                  className="max-w-full mx-auto max-h-96 object-contain" 
-                />
-              )}
-            </div>
-          )}
-          <div className="flex space-x-2">
-            <Button onClick={handleUpload} disabled={!file || isUploading}>
-              {isUploading ? (
-                <>
-                  <svg
-                    className="animate-spin h-5 w-5 mr-2 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8H4z"
-                    ></path>
-                  </svg>
-                  Uploading...
-                </>
-              ) : (
-                "Upload Receipt"
-              )}
-            </Button>
-
-            <Button onClick={handleEmptyBill} variant="outline">
-              Empty Bill
-            </Button>
-          </div>
+          <Button onClick={handleEmptyBill} variant="outline">
+            Empty Bill
+          </Button>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   const Bill_Page = () => {
     const [showSplitDialog, setShowSplitDialog] = useState(false);
