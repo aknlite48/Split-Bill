@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Check, Plus, X } from "lucide-react";
 
 export function Dialogue({
@@ -12,22 +12,55 @@ export function Dialogue({
   onAddNameNoClose,
   onDeletePerson,
 }) {
+  const [error, setError] = useState("");
+  
   if (!isOpen) return null;
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    
+    // Clear error when user types
+    if (error) setError("");
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // For person type, check for duplicates before submitting
+    if (dialogueType === "person") {
+      const trimmedName = formData.name.trim();
+      if (trimmedName === "") {
+        setError("Please enter a name");
+        return;
+      }
+      
+      // Check for duplicate case-insensitive
+      if (people.some(person => person.name.toLowerCase() === trimmedName.toLowerCase())) {
+        setError("This person is already in your list");
+        return;
+      }
+    }
+    
     onSubmit();
   };
 
   const handleAddNameNoClose = () => {
-    if (formData.name.trim() !== "") {
-      onAddNameNoClose(formData.name);
-      setFormData((prev) => ({ ...prev, name: "" }));
+    const trimmedName = formData.name.trim();
+    
+    if (trimmedName === "") {
+      setError("Please enter a name");
+      return;
     }
+    
+    // Check for duplicate before adding
+    if (people.some(person => person.name.toLowerCase() === trimmedName.toLowerCase())) {
+      setError("This person is already in your list");
+      return;
+    }
+    
+    onAddNameNoClose(trimmedName);
+    setFormData((prev) => ({ ...prev, name: "" }));
+    setError("");
   };
 
   return (
@@ -73,6 +106,17 @@ export function Dialogue({
           
           .modal-animation {
             animation: fadeIn 0.2s ease-out forwards;
+          }
+          
+          /* Error shake animation */
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+          }
+          
+          .error-shake {
+            animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
           }
         `}
       </style>
@@ -145,14 +189,14 @@ export function Dialogue({
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Name
                   </label>
-                  <div className="flex items-center">
+                  <div className={`flex items-center ${error ? "error-shake" : ""}`}>
                     <input
                       name="name"
                       type="text"
                       placeholder="Enter person name..."
                       value={formData.name || ""}
                       onChange={handleChange}
-                      className="border border-gray-300 rounded-l-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className={`border ${error ? "border-red-500" : "border-gray-300"} rounded-l-lg px-3 py-2 w-full focus:outline-none focus:ring-2 ${error ? "focus:ring-red-500" : "focus:ring-blue-500"} focus:border-transparent`}
                       required
                     />
                     <button
@@ -164,9 +208,15 @@ export function Dialogue({
                       <Plus size={20} />
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Click + to add multiple people without closing
-                  </p>
+                  {error ? (
+                    <p className="text-xs text-red-500 mt-1 animate-pulse">
+                      {error}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Click + to add multiple people without closing
+                    </p>
+                  )}
                 </div>
               )}
 

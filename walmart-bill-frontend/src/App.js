@@ -44,8 +44,18 @@ export default function App() {
   }
 
   function handleAddNameWithoutClosing(name) {
-    // Only add if the name isn't empty
-    setPeople((prev) => [...prev, { name, paidFor: {} }]);
+    // Trim the name and check for duplicates (case-insensitive)
+    const trimmedName = name.trim();
+    
+    // Don't add if the name is empty or already exists
+    if (trimmedName === "" || people.some(person => 
+        person.name.toLowerCase() === trimmedName.toLowerCase())) {
+      return false; // Return false to indicate failure
+    }
+    
+    // Add the person if validation passes
+    setPeople((prev) => [...prev, { name: trimmedName, paidFor: {} }]);
+    return true; // Return true to indicate success
   }
 
   useEffect(() => {
@@ -94,19 +104,33 @@ export default function App() {
   };
 
   // When form is submitted in the Dialogue
-  const handleDialogueSubmit = () => {
-    if (dialogueType === "person") {
-      // Add new person
-      setPeople([...people, { name: dialogueFormData.name, paidFor: {} }]);
-    } else if (dialogueType === "item") {
-      // Add new item (make sure to parse float)
-      const parsedPrice = parseFloat(dialogueFormData.price);
-      if (!isNaN(parsedPrice)) {
-        setItems([...items, { name: dialogueFormData.name, price: parsedPrice }]);
-      }
+// When form is submitted in the Dialogue
+const handleDialogueSubmit = () => {
+  if (dialogueType === "person") {
+    // Add new person (with duplicate check)
+    const trimmedName = dialogueFormData.name.trim();
+    
+    // Don't add if the name is empty or already exists
+    if (trimmedName === "" || people.some(person => 
+        person.name.toLowerCase() === trimmedName.toLowerCase())) {
+      return false; // Return false to indicate failure
     }
+    
+    setPeople([...people, { name: trimmedName, paidFor: {} }]);
     setShowDialogue(false);
-  };
+    return true;
+  } else if (dialogueType === "item") {
+    // Add new item (make sure to parse float)
+    const parsedPrice = parseFloat(dialogueFormData.price);
+    if (!isNaN(parsedPrice)) {
+      setItems([...items, { name: dialogueFormData.name.trim(), price: parsedPrice }]);
+      setShowDialogue(false);
+      return true;
+    }
+    return false;
+  }
+  return false;
+};
 
   const handleTaxEdit = () => {
     setEditingTax(true);
