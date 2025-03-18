@@ -4,14 +4,14 @@ import {
   Routes,
   Route,
   useNavigate,
-  Navigate
+  Navigate,
 } from "react-router-dom";
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
 import { Card, CardContent } from "./components/ui/Card";
 import { Trash2, Edit, Check } from "lucide-react";
 import { Dialogue } from "./components/ui/Dialogue";
-import { NavBar } from "./components/NavBar"; // Import the new NavBar component
+import { NavBar } from "./components/NavBar"
 
 export default function App() {
   const [file, setFile] = useState(null);
@@ -386,7 +386,7 @@ export default function App() {
     const [showSplitDialog, setShowSplitDialog] = useState(false);
     
     return (
-      <div className="flex flex-col h-[100vh] max-w-2xl mx-auto overflow-hidden">
+      <div className="flex flex-col h-[calc(100vh-100px)] max-w-2xl mx-auto overflow-hidden">
         {/* Fixed header with buttons */}
         <div className="p-4 border-b bg-white flex justify-between items-center">
           <div className="flex space-x-2">
