@@ -1,5 +1,5 @@
 import React from "react";
-import { Check } from "lucide-react";
+import { Check, Plus, X } from "lucide-react";
 
 export function Dialogue({
   isOpen,
@@ -64,155 +64,179 @@ export function Dialogue({
           .people-list::-webkit-scrollbar-thumb:hover {
             background: #a1a1a1;
           }
+          
+          /* Animation for modal */
+          @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+          }
+          
+          .modal-animation {
+            animation: fadeIn 0.2s ease-out forwards;
+          }
         `}
       </style>
 
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-        {/* The parent container has max height and width */}
-        <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md max-h-[80vh] flex flex-col">
-          <h2 className="text-xl font-bold mb-4">
-            {dialogueType === "item" ? "Add Item" : "Add Person"}
-          </h2>
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 backdrop-blur-sm">
+        {/* Modal container with animation */}
+        <div className="bg-white rounded-xl shadow-2xl w-[90%] max-w-md max-h-[80vh] flex flex-col modal-animation overflow-hidden">
+          {/* Header with title and close button */}
+          <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+            <h2 className="text-xl font-bold text-gray-800">
+              {dialogueType === "item" ? "Add Item" : "Add Person"}
+            </h2>
+            <button 
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              <X size={20} />
+            </button>
+          </div>
 
-          {dialogueType === "person" && people.length > 0 && (
-            <div className="mb-4 flex-shrink-0">
-              <h3 className="font-semibold">Current People:</h3>
+          <div className="p-6 flex-1 overflow-y-auto">
+            {/* People list section */}
+            {dialogueType === "person" && people.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-medium text-gray-700 mb-3">Current People</h3>
 
-              <div className="people-list overflow-y-auto max-h-[30vh] mt-2 pr-2">
-                <div className="flex flex-col items-start space-y-2">
-                  {people.map((p) => (
-                    <div
-                      key={p.name}
-                      // These classes ensure the box can wrap onto multiple lines:
-                      className="
-                        group
-                        inline-flex
-                        flex-wrap
-                        items-center
-                        bg-gray-50
-                        rounded-xl
-                        px-3
-                        py-1
-                        max-w-full
-                        break-words
-                        whitespace-normal
-                      "
-                    >
-                      <span>{p.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => onDeletePerson(p.name)}
+                <div className="people-list overflow-y-auto max-h-[30vh] pr-2">
+                  <div className="flex flex-wrap gap-2">
+                    {people.map((p) => (
+                      <div
+                        key={p.name}
                         className="
-                          hidden
-                          group-hover:inline-block
-                          ml-2
-                          text-red-500
-                          hover:text-red-700
-                          font-bold
+                          group
+                          flex
+                          items-center
+                          bg-blue-50
+                          text-blue-700
+                          rounded-full
+                          px-3
+                          py-1.5
+                          text-sm
+                          font-medium
+                          max-w-full
                         "
                       >
-                        &times;
-                      </button>
-                    </div>
-                  ))}
+                        <span className="truncate">{p.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => onDeletePerson(p.name)}
+                          className="
+                            ml-2
+                            text-blue-400
+                            hover:text-red-500
+                            transition-colors
+                          "
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4 flex-shrink-0">
-            {/* For adding a person */}
-            {dialogueType === "person" && (
-              <div className="flex items-center">
-                <input
-                  name="name"
-                  type="text"
-                  placeholder="Enter name…"
-                  value={formData.name || ""}
-                  onChange={handleChange}
-                  className="border border-gray-300 rounded px-2 py-1 w-full"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={handleAddNameNoClose}
-                  className="ml-2 p-2 bg-green-600 hover:bg-green-700 text-white rounded"
-                >
-                  <Check size={20} />
-                </button>
               </div>
             )}
 
-            {/* For adding an item */}
-            {dialogueType === "item" && (
-              <>
-                <div className="flex items-center space-x-2">
-                  <label
-                    htmlFor="itemName"
-                    className="whitespace-nowrap font-medium"
-                  >
-                    Item:
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* For adding a person */}
+              {dialogueType === "person" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name
                   </label>
-                  <input
-                    id="itemName"
-                    name="name"
-                    type="text"
-                    placeholder="Enter item name…"
-                    value={formData.name || ""}
-                    onChange={handleChange}
-                    className="w-full border-b border-gray-300 focus:border-b-2 focus:border-blue-500 focus:outline-none px-1 py-1"
-                    required
-                  />
+                  <div className="flex items-center">
+                    <input
+                      name="name"
+                      type="text"
+                      placeholder="Enter person name..."
+                      value={formData.name || ""}
+                      onChange={handleChange}
+                      className="border border-gray-300 rounded-l-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddNameNoClose}
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-r-lg transition-colors"
+                      title="Add and continue"
+                    >
+                      <Plus size={20} />
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Click + to add multiple people without closing
+                  </p>
                 </div>
+              )}
 
-                <div className="flex items-center space-x-2">
-                  <label
-                    htmlFor="price"
-                    className="whitespace-nowrap font-medium"
-                  >
-                    Price:
-                  </label>
-                  <input
-                    id="price"
-                    name="price"
-                    type="number"
-                    step="0.01"
-                    placeholder="Enter price…"
-                    value={formData.price || ""}
-                    onChange={handleChange}
-                    className="w-full border-b border-gray-300 focus:border-b-2 focus:border-blue-500 focus:outline-none px-1 py-1"
-                    required
-                  />
-                </div>
-              </>
-            )}
+              {/* For adding an item */}
+              {dialogueType === "item" && (
+                <>
+                  <div>
+                    <label htmlFor="itemName" className="block text-sm font-medium text-gray-700 mb-1">
+                      Item Name
+                    </label>
+                    <input
+                      id="itemName"
+                      name="name"
+                      type="text"
+                      placeholder="What's being purchased?"
+                      value={formData.name || ""}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
 
-            <div className="flex justify-end space-x-2">
+                  <div>
+                    <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+                      Price ($)
+                    </label>
+                    <input
+                      id="price"
+                      name="price"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={formData.price || ""}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                </>
+              )}
+            </form>
+          </div>
+
+          {/* Footer with action buttons */}
+          <div className="px-6 py-4 border-t bg-gray-50 flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            {dialogueType === "item" ? (
               <button
                 type="button"
-                onClick={onClose}
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded"
+                onClick={handleSubmit}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
-                Cancel
+                Add Item
               </button>
-              {dialogueType === "item" ? (
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
-                >
-                  Add Item
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
-                  onClick={onClose}
-                >
-                  Done
-                </button>
-              )}
-            </div>
-          </form>
+            ) : (
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                onClick={onClose}
+              >
+                Done
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </>
