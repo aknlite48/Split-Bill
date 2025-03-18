@@ -13,6 +13,8 @@ import { Trash2, Edit, Check } from "lucide-react";
 import { Dialogue } from "./components/ui/Dialogue";
 import { NavBar } from "./components/NavBar"
 
+const SCROLL_POSITION = { current: 0 };
+
 export default function App() {
   const [file, setFile] = useState(null);
   const [people, setPeople] = useState([]);
@@ -384,6 +386,24 @@ export default function App() {
 
   const Bill_Page = () => {
     const [showSplitDialog, setShowSplitDialog] = useState(false);
+    const scrollContainerRef = useRef(null);
+  
+  // Save and restore scroll position
+    useEffect(() => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+      
+      // Restore scroll position
+      container.scrollTop = SCROLL_POSITION.current;
+      
+      // Save scroll position when scrolling
+      const handleScroll = () => {
+        SCROLL_POSITION.current = container.scrollTop;
+      };
+      
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }, [items, editingIndex]);
     
     return (
       <div className="flex flex-col h-[calc(100vh-100px)] max-w-2xl mx-auto overflow-hidden">
@@ -402,7 +422,10 @@ export default function App() {
         </div>
         
         {/* Scrollable items section - takes available space between header and footer */}
-        <div className="flex-1 overflow-y-auto p-4 pb-2">
+        <div 
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-4 pb-2"
+        >
           {items.map((item, index) => (
             <Card key={index} className="p-2 mb-2 relative flex flex-col">
               <CardContent>
