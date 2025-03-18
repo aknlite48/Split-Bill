@@ -12,6 +12,7 @@ import { Card, CardContent } from "./components/ui/Card";
 import { Trash2, Edit, Check } from "lucide-react";
 import { Dialogue } from "./components/ui/Dialogue";
 import { NavBar } from "./components/NavBar"
+import { Plus, UserPlus, SplitIcon} from 'lucide-react';
 
 const SCROLL_POSITION = { current: 0 };
 
@@ -409,16 +410,29 @@ export default function App() {
       <div className="flex flex-col h-[calc(100vh-100px)] max-w-2xl mx-auto overflow-hidden">
         {/* Fixed header with buttons */}
         <div className="p-4 border-b bg-white flex justify-between items-center">
-          <div className="flex space-x-2">
-            <Button onClick={handleAddItem}>Add Item</Button>
-            <Button onClick={handleAddPerson}>Add Person</Button>
-          </div>
-          <Button 
-            onClick={() => setShowSplitDialog(true)} 
-            variant="outline"
-          >
-            View Split
-          </Button>
+        <div className="flex space-x-2">
+        <Button 
+          onClick={handleAddItem}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm flex items-center space-x-2 transition-all"
+        >
+          <Plus size={18} />
+          <span>Add Item</span>
+        </Button>
+        <Button 
+          onClick={handleAddPerson}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm flex items-center space-x-2 transition-all"
+        >
+          <UserPlus size={18} />
+          <span>Add Person</span>
+        </Button>
+      </div>
+      <Button 
+        onClick={() => setShowSplitDialog(true)} 
+        className="bg-white border border-blue-300 text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-lg shadow-sm flex items-center space-x-2 transition-all"
+      >
+        <SplitIcon size={18} />
+        <span>View Split</span>
+      </Button>
         </div>
         
         {/* Scrollable items section - takes available space between header and footer */}
