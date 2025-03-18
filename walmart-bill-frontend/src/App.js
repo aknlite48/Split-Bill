@@ -427,62 +427,72 @@ export default function App() {
         className="flex-1 overflow-y-auto p-4 pb-2"
         >
           {items.map((item, index) => (
-            <Card key={index} className="p-2 mb-2 relative flex flex-col">
-              <CardContent>
-                <div className="flex flex-col space-y-2">
-                  {/* Item name and price */}
+            <Card key={index} className="p-3 mb-3 relative flex flex-col shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-0"> {/* Remove default padding for better control */}
+                <div className="flex flex-col space-y-3">
+                  {/* Item name and price with improved styling */}
                   {editingIndex === index ? (
                     <div className="flex space-x-2">
                       <input
                         ref={nameInputRef}
-                        className="border p-1 flex-grow"
+                        className="border p-2 flex-grow rounded-md"
                         type="text"
                         defaultValue={item.name}
                         autoFocus
                       />
                       <input
                         ref={priceInputRef}
-                        className="border p-1 w-24"
+                        className="border p-2 w-28 rounded-md"
                         type="number"
                         defaultValue={item.price}
                       />
                     </div>
                   ) : (
-                    <div className="font-medium">
-                      {item.name} - ${item.price.toFixed(2)}
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <span className="font-semibold text-lg text-gray-800">{item.name}</span>
+                      <span className="font-bold text-lg text-blue-600">${item.price.toFixed(2)}</span>
                     </div>
                   )}
                   
-                  {/* Person buttons with horizontal scrolling */}
-                  <div className="relative">
-                    <div className="overflow-x-auto" style={{ 
-                      padding: "4px 0",
+                  {/* Improved People Selector Section */}
+                  <div className="pt-1">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm font-medium text-gray-700">Split with</p>
+                      <span className="text-xs text-gray-500">{
+                        people.filter(person => person.paidFor[index]).length 
+                          ? `Split ${people.filter(person => person.paidFor[index]).length} ways`
+                          : "Not assigned"
+                      }</span>
+                    </div>
+                    
+                    <div className="overflow-x-auto pb-1" style={{ 
                       WebkitOverflowScrolling: "touch"
                     }}>
-                      <div style={{
-                        display: "flex",
-                        gap: "8px",
-                        minWidth: "min-content"
-                      }}>
+                      <div className="flex gap-2 pb-1">
                         {people.map((person) => (
-                          <Button
+                          <button
                             key={person.name}
-                            variant={person.paidFor[index] ? "default" : "outline"}
                             onClick={() => togglePayment(index, person.name)}
+                            className={`
+                              px-3 py-1.5 rounded-full text-sm font-medium transition-all
+                              ${person.paidFor[index] 
+                                ? "bg-blue-100 text-blue-800 border border-blue-200 shadow-sm" 
+                                : "bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100"}
+                            `}
                             style={{ whiteSpace: "nowrap" }}
                           >
                             {person.name}
-                          </Button>
+                          </button>
                         ))}
                       </div>
                     </div>
                   </div>
                   
                   {/* Edit/Delete buttons */}
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end space-x-2 pt-2 border-t mt-1">
                     <button
                       onClick={() => handleEditItem(index)}
-                      className="text-gray-600 hover:text-black p-1"
+                      className="text-gray-600 hover:text-blue-600 p-1 transition-colors"
                     >
                       {editingIndex === index ? (
                         <Check size={20} />
@@ -492,7 +502,7 @@ export default function App() {
                     </button>
                     <button
                       onClick={() => handleDeleteItem(index)}
-                      className="text-gray-600 hover:text-black p-1"
+                      className="text-gray-600 hover:text-red-600 p-1 transition-colors"
                     >
                       <Trash2 size={20} />
                     </button>
