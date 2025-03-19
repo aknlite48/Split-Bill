@@ -13,6 +13,8 @@ import { Trash2, Edit, Check } from "lucide-react";
 import { Dialogue } from "./components/ui/Dialogue";
 import { NavBar } from "./components/NavBar"
 import { Plus, UserPlus, SplitIcon} from 'lucide-react';
+import { motion, AnimatePresence } from "framer-motion";
+import { FileUp, AlertCircle, X, FileText, Image, Upload, RefreshCw } from "lucide-react";
 
 const SCROLL_POSITION = { current: 0 };
 const HORIZONTAL_SCROLL_POSITIONS = {};
@@ -219,7 +221,6 @@ const Upload_Page = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  // Add a new state for error handling
   const [uploadError, setUploadError] = useState(null);
   const inputRef = useRef(null);
 
@@ -230,7 +231,6 @@ const Upload_Page = () => {
       const objectUrl = URL.createObjectURL(selectedFile);
       setPreviewUrl(objectUrl);
     }
-    // Clear any previous errors when a new file is selected
     setUploadError(null);
   };
 
@@ -270,7 +270,6 @@ const Upload_Page = () => {
       setFile(droppedFile);
       const objectUrl = URL.createObjectURL(droppedFile);
       setPreviewUrl(objectUrl);
-      // Clear any previous errors
       setUploadError(null);
     }
   };
@@ -293,7 +292,6 @@ const Upload_Page = () => {
     let call_point = process.env.REACT_APP_LOCAL_IP
     endpoint+=call_point ? call_point : "http://localhost"
   
-    // Check the file type
     if (file.type === "application/pdf") {
       formData.append("pdf", file);
       endpoint += ":5001/upload-pdf";
@@ -301,13 +299,12 @@ const Upload_Page = () => {
       formData.append("image", file);
       endpoint += ":5001/upload-image";
     } else {
-      // Set error for unsupported file type
       setUploadError("Unsupported file type. Please upload a PDF or image file.");
       return;
     }
   
     setIsUploading(true);
-    setUploadError(null); // Clear previous errors
+    setUploadError(null);
   
     try {
       const response = await fetch(endpoint, {
@@ -324,11 +321,9 @@ const Upload_Page = () => {
         setPeople([]);
         navigate("/bill");
       } else {
-        // Set error from the API
         setUploadError(data.error || "Failed to parse receipt. Please try a different image or upload manually.");
       }
     } catch (error) {
-      // Set error for network/server issues
       setUploadError("Failed to upload. Check your internet connection or try again later.");
       console.error("Upload failed", error);
     } finally {
@@ -336,120 +331,154 @@ const Upload_Page = () => {
     }
   };
   
-  // Function to dismiss the error
   const dismissError = () => {
     setUploadError(null);
   };
 
+  const getFileIcon = () => {
+    if (!file) return <FileUp className="h-12 w-12 text-blue-500 mb-2" />;
+    return file.type === "application/pdf" ? 
+      <FileText className="h-12 w-12 text-red-500 mb-2" /> : 
+      <Image className="h-12 w-12 text-green-500 mb-2" />;
+  };
+
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <div className="space-y-4">
-        {/* Error Card */}
-        {uploadError && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm animate-fade-in">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-red-800">Upload Failed</h3>
-                <div className="mt-1 text-sm text-red-700">
-                  <p>{uploadError}</p>
+    <div className="p-6 max-w-3xl mx-auto">
+      <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">Upload Your Receipt</h2>
+        
+        <AnimatePresence>
+          {uploadError && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm"
+            >
+              <div className="flex items-start">
+                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-red-800">Upload Failed</h3>
+                  <div className="mt-1 text-sm text-red-700">
+                    <p>{uploadError}</p>
+                  </div>
                 </div>
+                <button 
+                  onClick={dismissError} 
+                  className="ml-auto flex-shrink-0 text-red-500 hover:text-red-700 focus:outline-none"
+                  aria-label="Dismiss error"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
-              <button 
-                onClick={dismissError} 
-                className="ml-auto flex-shrink-0 text-red-500 hover:text-red-700"
-              >
-                <span className="sr-only">Dismiss</span>
-                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       
         <div
-          className={`border-2 border-dashed rounded p-8 text-center cursor-pointer transition-colors ${
-            dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+          className={`border-2 border-dashed rounded-lg p-10 text-center transition-all duration-200 ease-in-out cursor-pointer ${
+            dragActive 
+              ? "border-blue-500 bg-blue-50" 
+              : file 
+                ? "border-green-400 bg-green-50" 
+                : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={handleBrowseClick}
         >
-          {file ? (
-            <p className="text-gray-700 font-medium">{file.name}</p>
-          ) : (
-            <p className="text-gray-500">
-              Drag &amp; drop your PDF here or{" "}
-              <span className="text-blue-500 underline">click</span> to select
-            </p>
-          )}
+          <div className="flex flex-col items-center justify-center">
+            {getFileIcon()}
+            
+            <div className="space-y-2">
+              {file ? (
+                <>
+                  <p className="text-lg font-semibold text-gray-800">{file.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {(file.size / 1024).toFixed(1)} KB • Click to change
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-lg font-semibold text-gray-700">
+                    Drag & drop your receipt here
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Or <span className="text-blue-500 font-medium">browse</span> to select a file
+                  </p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Supports PDF and image files (JPG, PNG)
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         <input
           ref={inputRef}
           type="file"
           accept="application/pdf,image/*"
-          style={{ display: "none" }}
+          className="hidden"
           onChange={handleFileChange}
         />
+        
         {previewUrl && (
-          <div className="mt-2">
+          <div className="mt-4 p-2 border border-gray-200 rounded-lg bg-gray-50">
+            <p className="text-sm font-medium text-gray-500 mb-2">Preview:</p>
             {file?.type === "application/pdf" ? (
-              <embed
-                src={previewUrl}
-                width="100%"
-                height="500px"
-                type="application/pdf"
-              />
+              <div className="border rounded overflow-hidden">
+                <embed
+                  src={previewUrl}
+                  width="100%"
+                  height="400px"
+                  type="application/pdf"
+                  className="rounded"
+                />
+              </div>
             ) : (
-              <img 
-                src={previewUrl} 
-                alt="Receipt preview" 
-                className="max-w-full mx-auto max-h-96 object-contain" 
-              />
+              <div className="border rounded overflow-hidden bg-white">
+                <img 
+                  src={previewUrl} 
+                  alt="Receipt preview" 
+                  className="max-w-full mx-auto max-h-96 object-contain" 
+                />
+              </div>
             )}
           </div>
         )}
-        <div className="flex space-x-2">
-          <Button onClick={handleUpload} disabled={!file || isUploading}>
+        
+        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <Button 
+            onClick={handleUpload} 
+            disabled={!file || isUploading}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md disabled:opacity-50 transition-colors"
+          >
             {isUploading ? (
               <>
-                <svg
-                  className="animate-spin h-5 w-5 mr-2 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  ></path>
-                </svg>
-                Uploading...
+                <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                Processing...
               </>
             ) : (
-              "Upload Receipt"
+              <>
+                <Upload className="h-5 w-5 mr-2" />
+                Process Receipt
+              </>
             )}
           </Button>
 
-          <Button onClick={handleEmptyBill} variant="outline">
-            Empty Bill
+          <Button 
+            onClick={handleEmptyBill} 
+            variant="outline"
+            className="flex-1 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md transition-colors"
+          >
+            Start Empty Bill
           </Button>
+        </div>
+        
+        <div className="mt-4 text-center text-xs text-gray-500">
+          <p>After uploading, you'll be able to edit the bill details and split costs with friends</p>
         </div>
       </div>
     </div>
