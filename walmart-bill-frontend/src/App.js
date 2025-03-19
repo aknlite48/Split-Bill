@@ -15,6 +15,7 @@ import { NavBar } from "./components/NavBar"
 import { Plus, UserPlus, SplitIcon} from 'lucide-react';
 
 const SCROLL_POSITION = { current: 0 };
+const HORIZONTAL_SCROLL_POSITIONS = {};
 
 export default function App() {
   const [file, setFile] = useState(null);
@@ -512,9 +513,9 @@ const Upload_Page = () => {
         >
           {items.map((item, index) => (
             <Card key={index} className="p-3 mb-3 relative flex flex-col shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-0"> {/* Remove default padding for better control */}
+              <CardContent className="p-0">
                 <div className="flex flex-col space-y-3">
-                  {/* Item name and price with improved styling */}
+                  {/* Item name and price */}
                   {editingIndex === index ? (
                     <div className="flex space-x-2">
                       <input
@@ -538,25 +539,44 @@ const Upload_Page = () => {
                     </div>
                   )}
                   
-                  {/* Improved People Selector Section */}
+                  {/* People buttons with horizontal scrolling - with scroll position tracking */}
                   <div className="pt-1">
-                    <div className="flex justify-between items-center mb-2">
-                      <p className="text-sm font-medium text-gray-700">Split with</p>
-                      <span className="text-xs text-gray-500">{
-                        people.filter(person => person.paidFor[index]).length 
-                          ? `Split ${people.filter(person => person.paidFor[index]).length} ways`
-                          : "Not assigned"
-                      }</span>
-                    </div>
-                    
-                    <div className="overflow-x-auto pb-1" style={{ 
-                      WebkitOverflowScrolling: "touch"
-                    }}>
-                      <div className="flex gap-2 pb-1">
+                    <p className="text-sm text-gray-700 mb-2">Paid by:</p>
+                    <div 
+                      id={`item-${index}-scroll-container`}
+                      className="overflow-x-auto pb-1" 
+                      style={{ WebkitOverflowScrolling: "touch" }}
+                      ref={(el) => {
+                        // When component mounts or updates, restore scroll position
+                        if (el) {
+                          el.scrollLeft = HORIZONTAL_SCROLL_POSITIONS[`item-${index}`] || 0;
+                          
+                          // Add scroll event listener if not already added
+                          if (!el.hasScrollListener) {
+                            el.addEventListener('scroll', () => {
+                              HORIZONTAL_SCROLL_POSITIONS[`item-${index}`] = el.scrollLeft;
+                            });
+                            el.hasScrollListener = true;
+                          }
+                        }
+                      }}
+                    >
+                      <div style={{
+                        display: "flex",
+                        gap: "8px",
+                        minWidth: "min-content"
+                      }}>
                         {people.map((person) => (
                           <button
                             key={person.name}
-                            onClick={() => togglePayment(index, person.name)}
+                            onClick={() => {
+                              // Save current scroll position before toggling payment
+                              const scrollContainer = document.querySelector(`#item-${index}-scroll-container`);
+                              if (scrollContainer) {
+                                HORIZONTAL_SCROLL_POSITIONS[`item-${index}`] = scrollContainer.scrollLeft;
+                              }
+                              togglePayment(index, person.name);
+                            }}
                             className={`
                               px-3 py-1.5 rounded-full text-sm font-medium transition-all
                               ${person.paidFor[index] 
