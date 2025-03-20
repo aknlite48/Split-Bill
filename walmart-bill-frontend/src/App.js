@@ -42,6 +42,9 @@ export default function App() {
   const nameInputRef = useRef(null);
   const priceInputRef = useRef(null);
 
+  //previous splits
+  const [previousSplit,setPreviousSplit] = useState([]);
+
   function handleDeletePerson(nameToDelete) {
     setPeople((prev) => prev.filter((p) => p.name !== nameToDelete));
   }
@@ -65,11 +68,13 @@ export default function App() {
     const savedItems = localStorage.getItem("items");
     const savedPeople = localStorage.getItem("people");
     const savedTax = localStorage.getItem("tax");
+    const savedPreviousSplit = localStorage.getItem("previousSplit");
     //const savedTotal = localStorage.getItem("total");
 
     if (savedItems) setItems(JSON.parse(savedItems));
     if (savedPeople) setPeople(JSON.parse(savedPeople));
     if (savedTax) setTax(parseFloat(savedTax));
+    if (savedPreviousSplit) setPreviousSplit(savedPreviousSplit);
     //if (savedTotal) setTotal(parseFloat(savedTotal));
   }, []);
 
@@ -86,6 +91,11 @@ export default function App() {
       localStorage.removeItem("people");
     }
     if (tax>0) localStorage.setItem("tax", tax.toString());
+    if (previousSplit.length > 0) {
+      localStorage.setItem("previousSplit",JSON.stringify(previousSplit))
+    } else {
+      localStorage.removeItem("previousSplit");
+    }
     //localStorage.setItem("total", total.toString());
   }, [items, people, tax, total]);
 
@@ -277,6 +287,9 @@ const Upload_Page = () => {
   const handleEmptyBill = () => {
     navigate("/bill");
     setEmptyBillMode(true);
+
+    //add here
+
     setPeople([]);
     setItems([]);
     setTax(0);
