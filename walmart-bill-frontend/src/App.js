@@ -74,7 +74,7 @@ export default function App() {
     if (savedItems) setItems(JSON.parse(savedItems));
     if (savedPeople) setPeople(JSON.parse(savedPeople));
     if (savedTax) setTax(parseFloat(savedTax));
-    if (savedPreviousSplit) setPreviousSplit(savedPreviousSplit);
+    if (savedPreviousSplit) setPreviousSplit(JSON.parse(savedPreviousSplit));
     //if (savedTotal) setTotal(parseFloat(savedTotal));
   }, []);
 
@@ -97,7 +97,7 @@ export default function App() {
       localStorage.removeItem("previousSplit");
     }
     //localStorage.setItem("total", total.toString());
-  }, [items, people, tax, total]);
+  }, [items, people, tax, total,previousSplit]);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -284,17 +284,42 @@ const Upload_Page = () => {
     }
   };
 
+
   const handleEmptyBill = () => {
     navigate("/bill");
     setEmptyBillMode(true);
 
     //add here
-
+    let tempPreviousSplit = [{people: people,items: items,tax: tax},...previousSplit]
+    tempPreviousSplit = (tempPreviousSplit.length>5) ? tempPreviousSplit.slice(0, 10) : tempPreviousSplit;
+    let is_items = false;
+    if (items.length>0) {
+      setPreviousSplit(tempPreviousSplit);
+      is_items = true;
+    }
     setPeople([]);
     setItems([]);
     setTax(0);
     setTotal(0);
-    localStorage.clear();
+    localStorage.clear(); 
+    if (is_items) localStorage.setItem("previousSplit",JSON.stringify(tempPreviousSplit));
+  };
+//{previousSplit.map((items,index)=>{return <li>{items.tax}</li>})}
+  const ShowPreviousSplits = () => {
+    if (previousSplit.length>0) {
+      return (
+        <div>
+          <ul>
+          {previousSplit.map((items,index)=>{
+            let temp1 = items.items;
+            let temp2 = temp1[0].name;
+            return <li>{JSON.stringify(temp2)}</li>;
+          })
+            }
+          </ul>
+        </div>
+      );
+    }
   };
 
   const handleUpload = async () => {
@@ -493,7 +518,9 @@ const Upload_Page = () => {
         <div className="mt-4 text-center text-xs text-gray-500">
           <p>After uploading, you'll be able to edit the bill details and split costs with friends</p>
         </div>
+        <ShowPreviousSplits />
       </div>
+        
     </div>
   );
 };
