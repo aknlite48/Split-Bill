@@ -284,43 +284,162 @@ const Upload_Page = () => {
     }
   };
 
+  const addToPreviousSplits = () => {
+    let tempPreviousSplit = [{people: people,items: items,tax: tax},...previousSplit]
+    tempPreviousSplit = (tempPreviousSplit.length>5) ? tempPreviousSplit.slice(0, 10) : tempPreviousSplit;
+    if (items.length>0) {
+      setPreviousSplit(tempPreviousSplit);
+    }
+  }
+
+  const handleRestoreSplit = (splitIndex, navigate) => {
+    // Get the selected split from the previousSplit array
+    const selectedSplit = previousSplit[splitIndex];
+    
+    if (!selectedSplit) {
+      console.error("Split not found");
+      return;
+    }
+    
+    // Restore the split data to the app state
+    setItems(selectedSplit.items);
+    setPeople(selectedSplit.people);
+    setTax(parseFloat(selectedSplit.tax) || 0);
+    
+    // Calculate total based on items and tax
+    const calculatedTotal = selectedSplit.items.reduce(
+      (sum, item) => sum + parseFloat(item.price), 
+      0
+    ) + parseFloat(selectedSplit.tax || 0);
+    
+    setTotal(calculatedTotal);
+    
+    // Save to localStorage
+    localStorage.setItem("items", JSON.stringify(selectedSplit.items));
+    localStorage.setItem("people", JSON.stringify(selectedSplit.people));
+    localStorage.setItem("tax", selectedSplit.tax.toString());
+    
+    // Remove this split from the previous splits history
+    const updatedPreviousSplits = [...previousSplit];
+    updatedPreviousSplits.splice(splitIndex, 1);
+    setPreviousSplit(updatedPreviousSplits);
+    localStorage.setItem("previousSplit", JSON.stringify(updatedPreviousSplits));
+    
+    // Navigate to the bill page
+    navigate("/bill");
+  };
+
 
   const handleEmptyBill = () => {
     navigate("/bill");
     setEmptyBillMode(true);
 
-    //add here
-    let tempPreviousSplit = [{people: people,items: items,tax: tax},...previousSplit]
-    tempPreviousSplit = (tempPreviousSplit.length>5) ? tempPreviousSplit.slice(0, 10) : tempPreviousSplit;
-    let is_items = false;
-    if (items.length>0) {
-      setPreviousSplit(tempPreviousSplit);
-      is_items = true;
-    }
+    addToPreviousSplits();
     setPeople([]);
     setItems([]);
     setTax(0);
     setTotal(0);
     localStorage.clear(); 
-    if (is_items) localStorage.setItem("previousSplit",JSON.stringify(tempPreviousSplit));
   };
 //{previousSplit.map((items,index)=>{return <li>{items.tax}</li>})}
-  const ShowPreviousSplits = () => {
-    if (previousSplit.length>0) {
-      return (
-        <div>
-          <ul>
-          {previousSplit.map((items,index)=>{
-            let temp1 = items.items;
-            let temp2 = temp1[0].name;
-            return <li>{JSON.stringify(temp2)}</li>;
-          })
-            }
-          </ul>
-        </div>
-      );
-    }
-  };
+// Replace your current ShowPreviousSplits function with this one
+// This should be placed directly inside your Upload_Page component
+const ShowPreviousSplits = () => {
+  if (previousSplit.length === 0) {
+    return null;
+  }
+  
+  return (
+    <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+        <h3 className="text-lg font-medium text-gray-800">Recent Bill Splits</h3>
+      </div>
+      
+      <div className="divide-y divide-gray-200">
+        {previousSplit.map((split, index) => {
+          // Calculate total amount of the split
+          const itemsTotal = split.items.reduce((sum, item) => sum + parseFloat(item.price), 0);
+          const totalAmount = itemsTotal + parseFloat(split.tax);
+          
+          // Time label (using index as placeholder)
+          const daysAgo = index;
+          let timeLabel;
+          if (daysAgo === 0) {
+            timeLabel = "Today";
+          } else if (daysAgo === 1) {
+            timeLabel = "Yesterday";
+          } else {
+            timeLabel = `${daysAgo} days ago`;
+          }
+          
+          return (
+            <div 
+              key={index} 
+              className="px-4 py-3 hover:bg-blue-50 transition-colors"
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                // Get the selected split
+                const selectedSplit = previousSplit[index];
+                
+                // Restore the split data
+                setItems(selectedSplit.items);
+                setPeople(selectedSplit.people);
+                setTax(parseFloat(selectedSplit.tax) || 0);
+                
+                // Save to localStorage
+                localStorage.setItem("items", JSON.stringify(selectedSplit.items));
+                localStorage.setItem("people", JSON.stringify(selectedSplit.people));
+                localStorage.setItem("tax", selectedSplit.tax.toString());
+                
+                // Remove from history
+                const updatedSplits = [...previousSplit];
+                updatedSplits.splice(index, 1);
+                setPreviousSplit(updatedSplits);
+                localStorage.setItem("previousSplit", JSON.stringify(updatedSplits));
+                
+                // Navigate to bill page
+                navigate("/bill");
+              }}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="font-medium text-gray-800">
+                    ${totalAmount.toFixed(2)}
+                  </span>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {split.people.length} people • {split.items.length} items
+                  </p>
+                </div>
+                
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-medium text-blue-600">{timeLabel}</span>
+                </div>
+              </div>
+              
+              {split.people.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {split.people.slice(0, 3).map((person, personIndex) => (
+                    <span 
+                      key={personIndex} 
+                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                    >
+                      {person.name}
+                    </span>
+                  ))}
+                  {split.people.length > 3 && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                      +{split.people.length - 3} more
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
   const handleUpload = async () => {
     if (!file) return;
