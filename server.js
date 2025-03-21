@@ -7,6 +7,7 @@ const cors = require("cors");
 //const Tesseract = require("tesseract.js");
 const sharp = require('sharp');
 const sizeOf = require('image-size');
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -15,6 +16,12 @@ const PORT = 5001;
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+const isProduction = process.env.NODE_ENV === 'prod';
+if (isProduction) {
+  app.use(express.static(path.join(__dirname, 'walmart-bill-frontend/build')));
+}
+
 
 // Multer setup for file uploads
 const upload = multer({ dest: "uploads/" });

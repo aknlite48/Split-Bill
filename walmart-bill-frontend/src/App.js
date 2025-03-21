@@ -445,16 +445,15 @@ const ShowPreviousSplits = () => {
     if (!file) return;
   
     const formData = new FormData();
-    let endpoint = "";
-    let call_point = process.env.REACT_APP_LOCAL_IP
-    endpoint+=call_point ? call_point : "http://localhost"
+    let endpoint;
+
   
     if (file.type === "application/pdf") {
       formData.append("pdf", file);
-      endpoint += ":5001/upload-pdf";
+      endpoint = "/upload-pdf";
     } else if (file.type.startsWith("image/")) {
       formData.append("image", file);
-      endpoint += ":5001/upload-image";
+      endpoint = "/upload-image";
     } else {
       setUploadError("Unsupported file type. Please upload a PDF or image file.");
       return;
