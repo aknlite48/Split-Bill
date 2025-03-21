@@ -472,6 +472,9 @@ const ShowPreviousSplits = () => {
       const data = await response.json();
       
       if (data.success) {
+        //split history
+        addToPreviousSplits();
+
         setItems(data.extractedData.items);
         setTax(data.extractedData.tax);
         setTotal(data.extractedData.total);
