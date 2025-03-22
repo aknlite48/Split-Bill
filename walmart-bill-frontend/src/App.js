@@ -285,8 +285,9 @@ const Upload_Page = () => {
   };
 
   const addToPreviousSplits = () => {
+    let previousSplitMaxLength = 5;
     let tempPreviousSplit = [{people: people,items: items,tax: tax, time_created: Date.now()},...previousSplit]
-    tempPreviousSplit = (tempPreviousSplit.length>5) ? tempPreviousSplit.slice(0, 10) : tempPreviousSplit;
+    tempPreviousSplit = (tempPreviousSplit.length>previousSplitMaxLength) ? tempPreviousSplit.slice(0, previousSplitMaxLength) : tempPreviousSplit;
     if (items.length>0) {
       setPreviousSplit(tempPreviousSplit);
     }
@@ -413,6 +414,7 @@ const ShowPreviousSplits = () => {
                 setPreviousSplit(updatedSplits);
                 localStorage.setItem("previousSplit", JSON.stringify(updatedSplits));
                 
+                addToPreviousSplits();
                 // Navigate to bill page
                 navigate("/bill");
               }}
