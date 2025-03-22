@@ -285,7 +285,7 @@ const Upload_Page = () => {
   };
 
   const addToPreviousSplits = () => {
-    let tempPreviousSplit = [{people: people,items: items,tax: tax},...previousSplit]
+    let tempPreviousSplit = [{people: people,items: items,tax: tax, time_created: Date.now()},...previousSplit]
     tempPreviousSplit = (tempPreviousSplit.length>5) ? tempPreviousSplit.slice(0, 10) : tempPreviousSplit;
     if (items.length>0) {
       setPreviousSplit(tempPreviousSplit);
@@ -366,15 +366,24 @@ const ShowPreviousSplits = () => {
           const itemsTotal = split.items.reduce((sum, item) => sum + parseFloat(item.price), 0);
           const totalAmount = itemsTotal + parseFloat(split.tax);
           
-          // Time label (using index as placeholder)
-          const daysAgo = index;
+          // Calculate time difference and format relative time
+          const timeCreated = split.time_created || Date.now(); // Fallback to current time if not available
+          const timeDiff = Date.now() - timeCreated;
+          
+          // Format the time difference
           let timeLabel;
-          if (daysAgo === 0) {
-            timeLabel = "Today";
-          } else if (daysAgo === 1) {
-            timeLabel = "Yesterday";
-          } else {
-            timeLabel = `${daysAgo} days ago`;
+          if (timeDiff < 60000) { // Less than 1 minute (in milliseconds)
+            const seconds = Math.floor(timeDiff / 1000);
+            timeLabel = `${seconds}s ago`;
+          } else if (timeDiff < 3600000) { // Less than 1 hour
+            const minutes = Math.floor(timeDiff / 60000);
+            timeLabel = `${minutes} min${minutes === 1 ? '' : 's'} ago`;
+          } else if (timeDiff < 86400000) { // Less than 1 day
+            const hours = Math.floor(timeDiff / 3600000);
+            timeLabel = `${hours} hr${hours === 1 ? '' : 's'} ago`;
+          } else { // 1 day or more
+            const days = Math.floor(timeDiff / 86400000);
+            timeLabel = `${days} day${days === 1 ? '' : 's'} ago`;
           }
           
           return (
@@ -383,8 +392,7 @@ const ShowPreviousSplits = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: index * 0.05 }}
-              whileHover={{ backgroundColor: 'rgba(243, 244, 246, 0.8)' }}
-              className={`py-3 px-4 hover:cursor-pointer transition-colors ${
+              className={`py-3 px-4 hover:cursor-pointer hover:bg-gray-50 transition-all duration-150 ${
                 index !== previousSplit.length - 1 ? 'border-b border-gray-100' : ''
               }`}
               onClick={() => {
