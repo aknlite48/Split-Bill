@@ -128,7 +128,7 @@ app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
         // Step 4️⃣: Send extracted structured data to frontend
         try {
             const final_message = JSON.parse(openaiResponse.data.choices[0].message.content)
-            console.log(final_message)
+            //console.log(final_message)
             res.json({
                 success: true,
                 extractedData: final_message
@@ -294,7 +294,7 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
       // Send structured data to frontend
       try {
         const final_message = JSON.parse(openaiResponse.data.choices[0].message.content);
-        console.log(final_message);
+        //console.log(final_message);
         res.json({
           success: true,
           extractedData: final_message
