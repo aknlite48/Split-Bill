@@ -356,11 +356,11 @@ const ShowPreviousSplits = () => {
       transition={{ duration: 0.4 }}
       className="mt-8 max-w-md mx-auto"
     >
-      <div className="flex items-center justify-center mb-3">
-        <h3 className="text-sm font-medium text-gray-500">Recent Bills</h3>
+      <div className="flex items-center justify-center mb-2">
+        <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Recent Bills</h3>
       </div>
       
-      <div className="space-y-1 overflow-hidden rounded-lg border border-gray-100 shadow-sm bg-white">
+      <div className="space-y-0 overflow-hidden bg-transparent border-t border-gray-200/50">
         {previousSplit.map((split, index) => {
           // Calculate total amount of the split
           const itemsTotal = split.items.reduce((sum, item) => sum + parseFloat(item.price), 0);
@@ -392,9 +392,7 @@ const ShowPreviousSplits = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: index * 0.05 }}
-              className={`py-3 px-4 hover:cursor-pointer hover:bg-gray-50 transition-all duration-150 ${
-                index !== previousSplit.length - 1 ? 'border-b border-gray-100' : ''
-              }`}
+              className="py-2 px-3 hover:cursor-pointer hover:bg-gray-50/30 rounded-md transition-all duration-150 border-b border-gray-200/50 last:border-b-0"
               onClick={() => {
                 // Get the selected split
                 const selectedSplit = previousSplit[index];
@@ -421,9 +419,9 @@ const ShowPreviousSplits = () => {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <span className="text-gray-800 font-medium">${totalAmount.toFixed(2)}</span>
-                  <span className="mx-2 text-gray-300">•</span>
-                  <span className="text-gray-500 text-sm">{split.items.length} {split.items.length === 1 ? 'item' : 'items'}</span>
+                  <span className="text-gray-700 font-medium">${totalAmount.toFixed(2)}</span>
+                  <span className="mx-2 text-gray-300 opacity-50">•</span>
+                  <span className="text-gray-500 text-xs">{split.items.length} {split.items.length === 1 ? 'item' : 'items'}</span>
                 </div>
                 
                 <div className="flex items-center">
