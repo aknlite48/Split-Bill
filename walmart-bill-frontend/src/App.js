@@ -342,20 +342,25 @@ const Upload_Page = () => {
     localStorage.clear(); 
   };
 //{previousSplit.map((items,index)=>{return <li>{items.tax}</li>})}
-// Replace your current ShowPreviousSplits function with this one
-// This should be placed directly inside your Upload_Page component
 const ShowPreviousSplits = () => {
+  const navigate = useNavigate();
+  
   if (previousSplit.length === 0) {
     return null;
   }
   
   return (
-    <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden">
-      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-800">Recent Bill Splits</h3>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="mt-8 max-w-md mx-auto"
+    >
+      <div className="flex items-center justify-center mb-3">
+        <h3 className="text-sm font-medium text-gray-500">Recent Bills</h3>
       </div>
       
-      <div className="divide-y divide-gray-200">
+      <div className="space-y-1 overflow-hidden rounded-lg border border-gray-100 shadow-sm bg-white">
         {previousSplit.map((split, index) => {
           // Calculate total amount of the split
           const itemsTotal = split.items.reduce((sum, item) => sum + parseFloat(item.price), 0);
@@ -373,10 +378,15 @@ const ShowPreviousSplits = () => {
           }
           
           return (
-            <div 
-              key={index} 
-              className="px-4 py-3 hover:bg-blue-50 transition-colors"
-              style={{ cursor: 'pointer' }}
+            <motion.div
+              key={index}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={{ backgroundColor: 'rgba(243, 244, 246, 0.8)' }}
+              className={`py-3 px-4 hover:cursor-pointer transition-colors ${
+                index !== previousSplit.length - 1 ? 'border-b border-gray-100' : ''
+              }`}
               onClick={() => {
                 // Get the selected split
                 const selectedSplit = previousSplit[index];
@@ -401,43 +411,22 @@ const ShowPreviousSplits = () => {
                 navigate("/bill");
               }}
             >
-              <div className="flex justify-between items-center">
-                <div>
-                  <span className="font-medium text-gray-800">
-                    ${totalAmount.toFixed(2)}
-                  </span>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {split.people.length} people • {split.items.length} items
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="text-gray-800 font-medium">${totalAmount.toFixed(2)}</span>
+                  <span className="mx-2 text-gray-300">•</span>
+                  <span className="text-gray-500 text-sm">{split.items.length} {split.items.length === 1 ? 'item' : 'items'}</span>
                 </div>
                 
-                <div className="flex flex-col items-end">
-                  <span className="text-sm font-medium text-blue-600">{timeLabel}</span>
+                <div className="flex items-center">
+                  <span className="text-xs text-gray-400">{timeLabel}</span>
                 </div>
               </div>
-              
-              {split.people.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {split.people.slice(0, 3).map((person, personIndex) => (
-                    <span 
-                      key={personIndex} 
-                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
-                    >
-                      {person.name}
-                    </span>
-                  ))}
-                  {split.people.length > 3 && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                      +{split.people.length - 3} more
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+            </motion.div>
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -639,9 +628,9 @@ const ShowPreviousSplits = () => {
         <div className="mt-4 text-center text-xs text-gray-500">
           <p>After uploading, you'll be able to edit the bill details and split costs with friends</p>
         </div>
-        <ShowPreviousSplits />
-      </div>
         
+      </div>
+      <ShowPreviousSplits />
     </div>
   );
 };
