@@ -347,7 +347,7 @@ function updateConsoleStats() {
 // This should be placed AFTER all your specific API routes but BEFORE app.listen
 if (isProduction) {
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'walmart-bill-frontend/build'));
+    res.sendFile(path.join(__dirname, 'walmart-bill-frontend/build', 'index.html'));
   });
 }
 
