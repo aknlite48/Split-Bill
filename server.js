@@ -8,23 +8,59 @@ const cors = require("cors");
 const sharp = require('sharp');
 const sizeOf = require('image-size');
 const path = require("path");
+const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// Usage tracking variables
+let totalRequests = 0;
+let totalTokensUsed = 0;
+let estimatedCost = 0;
+const COST_PER_1K_TOKENS = 0.01; // Adjust
+
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cors());
+
+// Set up rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 20 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { 
+    success: false, 
+    error: "Too many requests from this IP, please try again after 15 minutes" 
+  }
+});
+
+// Apply rate limiting to upload routes
+app.use(['/upload-pdf', '/upload-image'], apiLimiter);
+
+// Request tracking middleware
+app.use((req, res, next) => {
+  if (req.path.includes('/upload-')) {
+    totalRequests++;
+    // Update the console with current stats
+    updateConsoleStats();
+  }
+  next();
+});
 
 const isProduction = process.env.NODE_ENV === 'prod';
 if (isProduction) {
   app.use(express.static(path.join(__dirname, 'walmart-bill-frontend/build')));
 }
 
-
-// Multer setup for file uploads
-const upload = multer({ dest: "uploads/" });
+// Multer setup for file uploads with size limits
+const upload = multer({ 
+  dest: "uploads/",
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB max file size
+  }
+});
 
 // Route to handle PDF uploads
 app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
@@ -75,14 +111,21 @@ app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
             }
         );
 
-        console.log("✅ Received structured response from OpenAI:", openaiResponse.data);
+        console.log("✅ Received structured response from OpenAI");
+        
+        // Update token usage and cost
+        if (openaiResponse.data.usage && openaiResponse.data.usage.total_tokens) {
+            const tokensUsed = openaiResponse.data.usage.total_tokens;
+            totalTokensUsed += tokensUsed;
+            estimatedCost += (tokensUsed / 1000) * COST_PER_1K_TOKENS;
+            updateConsoleStats();
+            console.log(`📊 This request used ${tokensUsed} tokens`);
+        }
 
         // Step 3️⃣: Delete file after processing
         fs.unlinkSync(filePath);
 
         // Step 4️⃣: Send extracted structured data to frontend
-        
-
         try {
             const final_message = JSON.parse(openaiResponse.data.choices[0].message.content)
             console.log(final_message)
@@ -94,15 +137,24 @@ app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
             console.log('json parsing failed')
             res.status(500).json({
                 success: false,
-                error: "parsinng failed",
+                error: "parsing failed",
                 details: error.response?.data || error.message
             });
-
         }
 
 
     } catch (error) {
         console.error("❌ OpenAI API Error:", error.response?.data || error.message);
+        
+        // Clean up the file if it exists
+        try {
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        } catch (unlinkError) {
+            console.error("Error deleting file:", unlinkError);
+        }
+        
         res.status(500).json({
             success: false,
             error: "OpenAI API failed",
@@ -218,6 +270,15 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
       
       console.log("✅ Received structured response from OpenAI Vision");
       
+      // Update token usage and cost
+      if (openaiResponse.data.usage && openaiResponse.data.usage.total_tokens) {
+          const tokensUsed = openaiResponse.data.usage.total_tokens;
+          totalTokensUsed += tokensUsed;
+          estimatedCost += (tokensUsed / 1000) * COST_PER_1K_TOKENS;
+          updateConsoleStats();
+          console.log(`📊 This request used ${tokensUsed} tokens`);
+      }
+      
       // Delete image files after processing
       fs.unlinkSync(filePath);
       
@@ -247,7 +308,7 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
           rawContent: openaiResponse.data.choices[0].message.content
         });
       }
-        } catch (error) {
+    } catch (error) {
       console.error("❌ Error processing image:", error.response?.data || error.message);
       
       // Attempt to clean up any files if an error occurs
@@ -266,7 +327,52 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
     }
 });
 
+// Function to update console with usage statistics
+function updateConsoleStats() {
+  // Clear the console
+  console.clear();
+  
+  // Print server info
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  
+  // Print usage statistics
+  console.log('\n===== OpenAI API Usage Statistics =====');
+  console.log(`📊 Total Requests: ${totalRequests}`);
+  console.log(`🔤 Total Tokens Used: ${totalTokensUsed.toLocaleString()}`);
+  console.log(`💰 Estimated Cost: $${estimatedCost.toFixed(4)}`);
+  console.log('=======================================\n');
+}
+
+// Catch-all GET route to handle client-side routing
+// This should be placed AFTER all your specific API routes but BEFORE app.listen
+if (isProduction) {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'walmart-bill-frontend/build'));
+  });
+}
+
+// Error handling middleware - should be last before starting server
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  
+  // Clean up file if it exists
+  if (req.file && req.file.path) {
+    try {
+      fs.unlinkSync(req.file.path);
+    } catch (unlinkError) {
+      console.error('Error deleting file during error handling:', unlinkError);
+    }
+  }
+  
+  res.status(500).json({
+    success: false,
+    error: "Server error",
+    message: err.message
+  });
+});
+
 // Start the server
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    // Initial console display
+    updateConsoleStats();
 });
