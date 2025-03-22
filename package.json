@@ -8,6 +8,7 @@
     "client": "cd walmart-bill-frontend && npm start",
     "server": "nodemon server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "setup": "npm install && cd walmart-bill-frontend && npm install && cd ..",
     "make": "cd walmart-bill-frontend && rm -rf build && npm run build && cd ..",
     "deploy": "NODE_ENV=prod node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
