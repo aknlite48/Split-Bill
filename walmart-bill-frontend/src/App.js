@@ -15,6 +15,7 @@ import { NavBar } from "./components/NavBar"
 import { Plus, UserPlus, SplitIcon} from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import { FileUp, AlertCircle, X, FileText, Image, Upload, RefreshCw } from "lucide-react";
+import { Whiteboard } from "./components/Whiteboard";
 
 const SCROLL_POSITION = { current: 0 };
 const HORIZONTAL_SCROLL_POSITIONS = {};
@@ -233,6 +234,47 @@ const Upload_Page = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const inputRef = useRef(null);
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
+
+  //<=== whiteboard ===>
+    const handleProcessDrawing = async (drawingFile) => {
+      setUploadError(null);
+      
+      try {
+        // Create form data for API request
+        const formData = new FormData();
+        formData.append('image', drawingFile);
+        
+        // Make the API request
+        const response = await fetch('/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Add to previous splits history
+          addToPreviousSplits();
+          
+          // Update with extracted data
+          setItems(data.extractedData.items);
+          setTax(data.extractedData.tax);
+          setTotal(data.extractedData.total);
+          setPeople([]);
+          
+          // Close whiteboard and navigate to bill page
+          setShowWhiteboard(false);
+          navigate('/bill');
+        } else {
+          setUploadError(data.error || 'Failed to process drawing. Please try again or use a different method.');
+        }
+      } catch (error) {
+        setUploadError('Failed to process drawing. Check your internet connection or try again later.');
+        console.error('Drawing processing failed', error);
+      }
+    };
+  //<=== whiteboard ===>    
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -631,6 +673,16 @@ const ShowPreviousSplits = () => {
           >
             Start Empty Bill
           </Button>
+          
+          {/* Add new Whiteboard Button */}
+          <Button 
+            onClick={() => setShowWhiteboard(true)}
+            variant="outline"
+            className="flex-1 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md transition-colors"
+          >
+            <Edit className="h-5 w-5 mr-2" />
+            Draw Receipt
+          </Button>
         </div>
         
         <div className="mt-4 text-center text-xs text-gray-500">
@@ -639,6 +691,11 @@ const ShowPreviousSplits = () => {
         
       </div>
       <ShowPreviousSplits />
+            <Whiteboard 
+              isOpen={showWhiteboard}
+              onClose={() => setShowWhiteboard(false)}
+              onProcessDrawing={handleProcessDrawing}
+            />
     </div>
   );
 };
