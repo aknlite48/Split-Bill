@@ -585,7 +585,7 @@ const ShowPreviousSplits = () => {
         </AnimatePresence>
       
         <div
-          className={`border-2 border-dashed rounded-lg p-10 text-center transition-all duration-200 ease-in-out cursor-pointer ${
+          className={`border-2 border-dashed rounded-lg p-10 text-center transition-all duration-200 ease-in-out relative ${
             dragActive 
               ? "border-blue-500 bg-blue-50" 
               : file 
@@ -595,7 +595,6 @@ const ShowPreviousSplits = () => {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          // handle browse click was here before
         >
           <div className="flex flex-col items-center justify-center">
             {getFileIcon()}
@@ -603,11 +602,25 @@ const ShowPreviousSplits = () => {
             <div className="space-y-2">
               {file ? (
                 <>
+                <div className="relative">
+                  {/* Add reset button (X) in the top right */}
+                  <button 
+                    className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-sm border border-gray-200 hover:bg-gray-100 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent the parent click handler
+                      setFile(null);
+                      setPreviewUrl(null);
+                    }}
+                    title="Remove file"
+                  >
+                    <X className="h-3.5 w-3.5 text-gray-500" />
+                  </button>
                   <p className="text-lg font-semibold text-gray-800">{file.name}</p>
                   <p className="text-sm text-gray-500">
                     {(file.size / 1024).toFixed(1)} KB • Click to change
                   </p>
-                </>
+                </div>
+              </>
               ) : (
                 <>
                   <p className="text-lg font-semibold text-gray-700">
