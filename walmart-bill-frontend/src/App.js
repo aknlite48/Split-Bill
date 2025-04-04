@@ -237,6 +237,17 @@ const Upload_Page = () => {
   const [showWhiteboard, setShowWhiteboard] = useState(false);
 
   //<=== whiteboard ===>
+    const handleSaveDrawing = (drawingFile, previewUrl) => {
+      // Save the drawing file
+      setFile(drawingFile);
+      
+      // Set the preview
+      setPreviewUrl(previewUrl);
+      
+      // Close the whiteboard
+      setShowWhiteboard(false);
+    };
+
     const handleProcessDrawing = async (drawingFile) => {
       setUploadError(null);
       
@@ -694,7 +705,7 @@ const ShowPreviousSplits = () => {
             <Whiteboard 
               isOpen={showWhiteboard}
               onClose={() => setShowWhiteboard(false)}
-              onProcessDrawing={handleProcessDrawing}
+              onSaveDrawing={handleSaveDrawing}
             />
     </div>
   );

@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { X, Save, Trash, RefreshCw, Edit, Eraser } from 'lucide-react';
 import { Button } from './ui/Button';
 
-export const Whiteboard = ({ isOpen, onClose, onProcessDrawing }) => {
+export const Whiteboard = ({ isOpen, onClose, onSaveDrawing }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastX, setLastX] = useState(0);
@@ -129,9 +129,6 @@ export const Whiteboard = ({ isOpen, onClose, onProcessDrawing }) => {
     setIsProcessing(true);
     
     try {
-      // Debug: Save the image locally
-      saveDrawingForDebug();
-      
       // Create a temporary canvas with white background
       const origCanvas = canvasRef.current;
       const tempCanvas = document.createElement('canvas');
@@ -146,12 +143,18 @@ export const Whiteboard = ({ isOpen, onClose, onProcessDrawing }) => {
       // Draw the original canvas content on top
       tempCtx.drawImage(origCanvas, 0, 0);
       
-      // Convert the temp canvas (with background) to blob
+      // Get preview URL
+      const previewUrl = tempCanvas.toDataURL('image/png');
+      
+      // Convert to blob for file creation
       tempCanvas.toBlob(async (blob) => {
         const drawingFile = new File([blob], 'receipt-drawing.png', { type: 'image/png' });
         
-        // Send the file to parent component for processing
-        await onProcessDrawing(drawingFile);
+        // Just save the drawing and preview URL to parent component
+        await onSaveDrawing(drawingFile, previewUrl);
+        
+        // Debug save if needed
+        //saveDrawingForDebug();
       }, 'image/png');
     } catch (error) {
       console.error('Canvas conversion error', error);
