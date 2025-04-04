@@ -130,7 +130,7 @@ export const Whiteboard = ({ isOpen, onClose, onProcessDrawing }) => {
     
     try {
       // Debug: Save the image locally
-      //saveDrawingForDebug();
+      saveDrawingForDebug();
       
       // Create a temporary canvas with white background
       const origCanvas = canvasRef.current;
@@ -218,24 +218,30 @@ export const Whiteboard = ({ isOpen, onClose, onProcessDrawing }) => {
         
         {/* Drawing toolbar */}
         <div className="bg-gray-50 px-6 py-2 border-b flex justify-center">
-          <div className="flex space-x-3">
-            <Button
+          <div className="flex space-x-4">
+            <button
               onClick={() => setMode('draw')}
-              variant={mode === 'draw' ? 'default' : 'outline'}
-              className={`px-3 py-1.5 transition-colors flex items-center`}
+              className={`p-2 rounded-full transition-all flex items-center justify-center ${
+                mode === 'draw' 
+                  ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-300 shadow-sm' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              title="Draw"
             >
-              <Edit className="h-4 w-4 mr-2" />
-              Draw
-            </Button>
+              <Edit className="h-6 w-6" />
+            </button>
             
-            <Button
+            <button
               onClick={() => setMode('erase')}
-              variant={mode === 'erase' ? 'default' : 'outline'}
-              className={`px-3 py-1.5 transition-colors flex items-center`}
+              className={`p-2 rounded-full transition-all flex items-center justify-center ${
+                mode === 'erase' 
+                  ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-300 shadow-sm' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              title="Erase"
             >
-              <Eraser className="h-4 w-4 mr-2" />
-              Erase
-            </Button>
+              <Eraser className="h-6 w-6" />
+            </button>
           </div>
         </div>
         
