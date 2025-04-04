@@ -596,31 +596,32 @@ const ShowPreviousSplits = () => {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
+          {/* Add reset button conditionally when file exists */}
+          {file && (
+            <button 
+              className="absolute top-3 right-3 bg-white rounded-full p-1 shadow-sm border border-gray-200 hover:bg-gray-100 transition-colors z-10"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent the parent click handler
+                setFile(null);
+                setPreviewUrl(null);
+              }}
+              title="Remove file"
+            >
+              <X className="h-4 w-4 text-gray-500" />
+            </button>
+          )}
+
           <div className="flex flex-col items-center justify-center">
             {getFileIcon()}
             
             <div className="space-y-2">
               {file ? (
                 <>
-                <div className="relative">
-                  {/* Add reset button (X) in the top right */}
-                  <button 
-                    className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-sm border border-gray-200 hover:bg-gray-100 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent the parent click handler
-                      setFile(null);
-                      setPreviewUrl(null);
-                    }}
-                    title="Remove file"
-                  >
-                    <X className="h-3.5 w-3.5 text-gray-500" />
-                  </button>
                   <p className="text-lg font-semibold text-gray-800">{file.name}</p>
                   <p className="text-sm text-gray-500">
                     {(file.size / 1024).toFixed(1)} KB • Click to change
                   </p>
-                </div>
-              </>
+                </>
               ) : (
                 <>
                   <p className="text-lg font-semibold text-gray-700">
@@ -636,9 +637,6 @@ const ShowPreviousSplits = () => {
                       browse
                     </span> to select a file
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Supports PDF and image files (JPG, PNG)
-                  </p>
                   <p className="text-sm text-gray-500 mt-2">
                     Or <span 
                         className="text-blue-500 font-medium cursor-pointer hover:underline"
@@ -648,6 +646,9 @@ const ShowPreviousSplits = () => {
                         }}>
                       draw
                     </span> your receipt
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Supports PDF and image files (JPG, PNG)
                   </p>
                 </>
               )}
