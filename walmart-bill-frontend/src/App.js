@@ -595,7 +595,7 @@ const ShowPreviousSplits = () => {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          onClick={handleBrowseClick}
+          // handle browse click was here before
         >
           <div className="flex flex-col items-center justify-center">
             {getFileIcon()}
@@ -614,10 +614,27 @@ const ShowPreviousSplits = () => {
                     Drag & drop your receipt here
                   </p>
                   <p className="text-sm text-gray-500">
-                    Or <span className="text-blue-500 font-medium">browse</span> to select a file
+                    Or <span 
+                        className="text-blue-500 font-medium cursor-pointer hover:underline"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent the parent div click handler
+                          handleBrowseClick();
+                        }}>
+                      browse
+                    </span> to select a file
                   </p>
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs text-gray-400 mt-1">
                     Supports PDF and image files (JPG, PNG)
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Or <span 
+                        className="text-blue-500 font-medium cursor-pointer hover:underline"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent the parent div click handler
+                          setShowWhiteboard(true);
+                        }}>
+                      draw
+                    </span> your receipt
                   </p>
                 </>
               )}
@@ -683,16 +700,6 @@ const ShowPreviousSplits = () => {
             className="flex-1 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md transition-colors"
           >
             Start Empty Bill
-          </Button>
-          
-          {/* Add new Whiteboard Button */}
-          <Button 
-            onClick={() => setShowWhiteboard(true)}
-            variant="outline"
-            className="flex-1 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md transition-colors"
-          >
-            <Edit className="h-5 w-5 mr-2" />
-            Draw Receipt
           </Button>
         </div>
         
