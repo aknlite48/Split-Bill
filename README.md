@@ -2,7 +2,8 @@
 
 A modern web application that helps you split bills and receipts with friends and roommates. Simply upload a photo of your receipt, draw it on the screen, or manually enter items, and the app will help you track who paid for what.
 
-![Split Bill App](https://via.placeholder.com/800x400?text=Split+Bill+App)
+
+<img width="805" alt="image" src="https://github.com/user-attachments/assets/8745d9ff-3931-477d-b4c1-97fb9aaf2545" />
 
 ## Features
 
