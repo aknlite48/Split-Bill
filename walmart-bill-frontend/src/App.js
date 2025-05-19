@@ -982,72 +982,88 @@ const ShowPreviousSplits = () => {
         </div>
         
         {/* Split Details Dialog */}
-        {showSplitDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
-              {/* Header */}
-              <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-                <h3 className="text-xl font-bold text-gray-800">Split Details</h3>
-                <button
-                  onClick={() => setShowSplitDialog(false)}
-                  className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-              
-              {/* Calculations summary */}
-              <div className="px-6 py-3 bg-blue-50 border-b">
-                <div className="flex justify-between text-sm text-blue-800">
-                  <span>Total bill amount:</span>
-                  <span className="font-semibold">${calculatedTotal.toFixed(2)}</span>
-                </div>
-                {splitTax && (
-                  <div className="flex justify-between text-sm text-blue-800 mt-1">
-                    <span>Tax split:</span>
-                    <span className="font-semibold">Evenly between {people.length} {people.length === 1 ? 'person' : 'people'}</span>
-                  </div>
-                )}
-              </div>
-              
-              {/* Person list */}
-              <div className="overflow-y-auto max-h-72 p-2">
-                {calculateSplit().map((person, index) => (
-                  <div 
-                    key={person.name} 
-                    className={`py-3 px-4 border-b last:border-b-0 flex justify-between items-center ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                    } rounded-lg my-1`}
+        <AnimatePresence>
+          {showSplitDialog && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ type: "spring", duration: 0.3 }}
+                className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
+              >
+                {/* Header */}
+                <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+                  <h3 className="text-xl font-bold text-gray-800">Split Details</h3>
+                  <button
+                    onClick={() => setShowSplitDialog(false)}
+                    className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
                   >
-                    <div className="flex items-center">
-                      <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium mr-3">
-                        {person.name.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="font-medium text-gray-800">{person.name}</span>
-                    </div>
-                    <span className="font-bold text-lg text-blue-600">${person.amount.toFixed(2)}</span>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Footer with total and close button */}
-              <div className="px-6 py-4 border-t flex justify-between items-center bg-gray-50">
-                <div>
-                  <p className="text-sm text-gray-500">Total split: ${calculateSplit().reduce((sum, p) => sum + p.amount, 0).toFixed(2)}</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
                 </div>
-                <Button 
-                  onClick={() => setShowSplitDialog(false)}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+                
+                {/* Calculations summary */}
+                <div className="px-6 py-3 bg-blue-50 border-b">
+                  <div className="flex justify-between text-sm text-blue-800">
+                    <span>Total bill amount:</span>
+                    <span className="font-semibold">${calculatedTotal.toFixed(2)}</span>
+                  </div>
+                  {splitTax && (
+                    <div className="flex justify-between text-sm text-blue-800 mt-1">
+                      <span>Tax split:</span>
+                      <span className="font-semibold">Evenly between {people.length} {people.length === 1 ? 'person' : 'people'}</span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Person list */}
+                <div className="overflow-y-auto max-h-72 p-2">
+                  {calculateSplit().map((person, index) => (
+                    <motion.div 
+                      key={person.name}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className={`py-3 px-4 border-b last:border-b-0 flex justify-between items-center ${
+                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                      } rounded-lg my-1`}
+                    >
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium mr-3">
+                          {person.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-medium text-gray-800">{person.name}</span>
+                      </div>
+                      <span className="font-bold text-lg text-blue-600">${person.amount.toFixed(2)}</span>
+                    </motion.div>
+                  ))}
+                </div>
+                
+                {/* Footer with total and close button */}
+                <div className="px-6 py-4 border-t flex justify-between items-center bg-gray-50">
+                  <div>
+                    <p className="text-sm text-gray-500">Total split: ${calculateSplit().reduce((sum, p) => sum + p.amount, 0).toFixed(2)}</p>
+                  </div>
+                  <Button 
+                    onClick={() => setShowSplitDialog(false)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Custom Split Dialogue */}
         <CustomSplitDialogue
