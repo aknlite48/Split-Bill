@@ -12,7 +12,7 @@ export const CustomSplitDialogue = ({ isOpen, onClose, people, itemName, onSave,
       const initialSplits = {};
       // Only initialize splits for selected people
       selectedPeople.forEach(person => {
-        initialSplits[person] = currentSplits[person] || 0;
+        initialSplits[person] = currentSplits[person] || '';
       });
       setSplits(initialSplits);
       calculateTotal(initialSplits);
@@ -20,20 +20,31 @@ export const CustomSplitDialogue = ({ isOpen, onClose, people, itemName, onSave,
   }, [people, currentSplits, selectedPeople]);
 
   const calculateTotal = (currentSplits) => {
-    const total = Object.values(currentSplits).reduce((sum, value) => sum + (parseFloat(value) || 0), 0);
+    const total = Object.values(currentSplits).reduce((sum, value) => {
+      const numValue = parseFloat(value);
+      return sum + (isNaN(numValue) ? 0 : numValue);
+    }, 0);
     setTotalPercentage(total);
     setError(total !== 100 ? 'Percentages must add up to 100%' : '');
   };
 
   const handleSplitChange = (personName, value) => {
-    const newSplits = { ...splits, [personName]: value };
-    setSplits(newSplits);
-    calculateTotal(newSplits);
+    // Allow empty string, numbers, and decimal points
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      const newSplits = { ...splits, [personName]: value };
+      setSplits(newSplits);
+      calculateTotal(newSplits);
+    }
   };
 
   const handleSave = () => {
     if (totalPercentage === 100) {
-      onSave(splits);
+      // Convert empty strings to 0 before saving
+      const finalSplits = Object.entries(splits).reduce((acc, [key, value]) => {
+        acc[key] = value === '' ? 0 : parseFloat(value);
+        return acc;
+      }, {});
+      onSave(finalSplits);
       onClose();
     }
   };
@@ -62,11 +73,12 @@ export const CustomSplitDialogue = ({ isOpen, onClose, people, itemName, onSave,
                 <span className="font-medium text-gray-700">{personName}</span>
                 <div className="flex items-center space-x-2">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     min="0"
                     max="100"
                     step="0.01"
-                    value={splits[personName] || 0}
+                    value={splits[personName] || ''}
                     onChange={(e) => handleSplitChange(personName, e.target.value)}
                     className="w-24 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="0"
