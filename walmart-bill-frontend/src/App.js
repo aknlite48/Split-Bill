@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FileUp, AlertCircle, X, FileText, Image, Upload, RefreshCw } from "lucide-react";
 import { Whiteboard } from "./components/Whiteboard";
 import { CustomSplitDialogue } from "./components/CustomSplitDialogue";
-import { Percent } from 'lucide-react';
+import { Percent, BarChart2 } from 'lucide-react';
 
 const SCROLL_POSITION = { current: 0 };
 const HORIZONTAL_SCROLL_POSITIONS = {};
@@ -854,10 +854,10 @@ const ShowPreviousSplits = () => {
                       <p className="text-sm text-gray-700">Paid by:</p>
                       <button
                         onClick={() => handleCustomSplit(index)}
-                        className="text-sm text-blue-600 hover:text-blue-700 flex items-center space-x-1"
+                        className="text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        title="Custom Split"
                       >
-                        <Percent size={16} />
-                        <span>Custom Split</span>
+                        <BarChart2 size={20} strokeWidth={2.5} />
                       </button>
                     </div>
                     <div 
