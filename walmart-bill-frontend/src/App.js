@@ -5,6 +5,7 @@ import {
   Route,
   useNavigate,
   Navigate,
+  Outlet
 } from "react-router-dom";
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
@@ -18,9 +19,20 @@ import { FileUp, AlertCircle, X, FileText, Image, Upload, RefreshCw } from "luci
 import { Whiteboard } from "./components/Whiteboard";
 import { CustomSplitDialogue } from "./components/CustomSplitDialogue";
 import { Percent, BarChart2 } from 'lucide-react';
+import { LandingPage } from "./components/LandingPage";
 
 const SCROLL_POSITION = { current: 0 };
 const HORIZONTAL_SCROLL_POSITIONS = {};
+
+// Create a layout component for the app routes
+const AppLayout = () => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <NavBar />
+      <Outlet />
+    </div>
+  );
+};
 
 export default function App() {
   const [file, setFile] = useState(null);
@@ -1086,7 +1098,23 @@ const ShowPreviousSplits = () => {
 
   return (
     <Router>
-      {/* Dialogue for adding Person or Item */}
+      <Routes>
+        {/* Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* App Routes */}
+        <Route path="/app" element={<AppLayout />}>
+          <Route path="upload" element={<Upload_Page />} />
+          <Route path="bill" element={<Bill_Page />} />
+          <Route index element={<Navigate to="upload" replace />} />
+        </Route>
+
+        {/* Redirect old routes to new structure */}
+        <Route path="/upload" element={<Navigate to="/app/upload" replace />} />
+        <Route path="/bill" element={<Navigate to="/app/bill" replace />} />
+      </Routes>
+
+      {/* Global Components */}
       <Dialogue
         isOpen={showDialogue}
         onClose={() => setShowDialogue(false)}
@@ -1098,16 +1126,6 @@ const ShowPreviousSplits = () => {
         onAddNameNoClose={handleAddNameWithoutClosing}
         onDeletePerson={handleDeletePerson}
       />
-      
-      {/* Add the NavBar component */}
-      <NavBar />
-      
-      <Routes>
-        <Route path="/upload" element={<Upload_Page />} />
-        <Route path="/bill" element={<Bill_Page />} />
-        {/* Add redirect from root to upload page */}
-        <Route path="/" element={<Navigate to="/upload" replace />} />
-      </Routes>
     </Router>
   );
 }

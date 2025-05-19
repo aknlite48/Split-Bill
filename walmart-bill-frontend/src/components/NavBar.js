@@ -1,86 +1,73 @@
-import React from "react";
-import {Link, useLocation} from "react-router-dom";
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Receipt, Home, Upload, FileText } from 'lucide-react';
 
 export const NavBar = () => {
+  const navigate = useNavigate();
   const location = useLocation();
-  
+
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
   return (
-    <nav className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md p-4 mb-6">
-      <div className="max-w-2xl mx-auto flex justify-between items-center">
-        <div className="flex items-center">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            className="mr-2"
-          >
-            <rect width="20" height="14" x="2" y="5" rx="2" />
-            <line x1="2" x2="22" y1="10" y2="10" />
-          </svg>
-          <div className="text-xl font-bold">SplitBill</div>
-        </div>
-        <div className="flex space-x-2">
-          <Link 
-            to="/upload" 
-            className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center ${
-              location.pathname === "/upload" 
-                ? "bg-white text-blue-700 font-medium" 
-                : "hover:bg-blue-700 hover:bg-opacity-70"
-            }`}
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="18" 
-              height="18" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              className="mr-1"
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      className="bg-white border-b border-gray-200 shadow-sm"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <button
+                onClick={() => navigate('/')}
+                className="text-gray-900 font-bold text-xl flex items-center space-x-2"
+              >
+                <Receipt className="w-6 h-6 text-blue-600" />
+                <span>Bill Splitter</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigate('/app/upload')}
+              className={`p-2 rounded-lg transition-colors ${
+                isActive('/app/upload') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+              }`}
+              title="Upload Receipt"
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            Upload
-          </Link>
-          <Link 
-            to="/bill" 
-            className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center ${
-              location.pathname === "/bill" 
-                ? "bg-white text-blue-700 font-medium" 
-                : "hover:bg-blue-700 hover:bg-opacity-70"
-            }`}
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="18" 
-              height="18" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              className="mr-1"
+              <Upload className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => navigate('/app/bill')}
+              className={`p-2 rounded-lg transition-colors ${
+                isActive('/app/bill') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+              }`}
+              title="View Bill"
             >
-              <path d="M3 3v18h18" />
-              <path d="M18 8V3H8v5h10z" />
-              <path d="M18 15v-2h-4v2h4z" />
-              <rect x="8" y="13" width="4" height="6" />
-            </svg>
-            Bill
-          </Link>
+              <FileText className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className={`p-2 rounded-lg transition-colors ${
+                isActive('/') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+              }`}
+              title="Home"
+            >
+              <Home className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
-    </nav>
+    </motion.nav>
   );
 };
