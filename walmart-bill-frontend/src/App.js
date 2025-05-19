@@ -16,6 +16,8 @@ import { Plus, UserPlus, SplitIcon} from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import { FileUp, AlertCircle, X, FileText, Image, Upload, RefreshCw } from "lucide-react";
 import { Whiteboard } from "./components/Whiteboard";
+import { CustomSplitDialogue } from "./components/CustomSplitDialogue";
+import { Percent } from 'lucide-react';
 
 const SCROLL_POSITION = { current: 0 };
 const HORIZONTAL_SCROLL_POSITIONS = {};
@@ -45,6 +47,10 @@ export default function App() {
 
   //previous splits
   const [previousSplit,setPreviousSplit] = useState([]);
+
+  const [customSplits, setCustomSplits] = useState({});
+  const [showCustomSplit, setShowCustomSplit] = useState(false);
+  const [selectedItemIndex, setSelectedItemIndex] = useState(null);
 
   function handleDeletePerson(nameToDelete) {
     setPeople((prev) => prev.filter((p) => p.name !== nameToDelete));
@@ -211,6 +217,26 @@ const handleDialogueSubmit = () => {
 
   const calculatedTotal = items.reduce((sum, item) => sum + item.price, 0) + tax;
 
+  const handleCustomSplit = (index) => {
+    // Get the names of people who have paid for this item
+    const selectedPeople = people
+      .filter(person => person.paidFor[index])
+      .map(person => person.name);
+    
+    // Only show custom split dialog if there are selected people
+    if (selectedPeople.length > 0) {
+      setSelectedItemIndex(index);
+      setShowCustomSplit(true);
+    }
+  };
+
+  const handleSaveCustomSplit = (splits) => {
+    setCustomSplits(prev => ({
+      ...prev,
+      [selectedItemIndex]: splits
+    }));
+  };
+
   const calculateSplit = () => {
     const taxPerPerson = splitTax && people.length > 0 ? tax / people.length : 0;
     return people.map((person) => {
@@ -218,7 +244,14 @@ const handleDialogueSubmit = () => {
       items.forEach((item, index) => {
         const payers = people.filter((p) => p.paidFor[index]);
         if (payers.length > 0 && person.paidFor[index]) {
-          personTotal += item.price / payers.length;
+          if (customSplits[index]) {
+            // Use custom split percentages if available
+            const percentage = parseFloat(customSplits[index][person.name]) || 0;
+            personTotal += (item.price * percentage) / 100;
+          } else {
+            // Use equal split if no custom split
+            personTotal += item.price / payers.length;
+          }
         }
       });
       return { name: person.name, amount: personTotal };
@@ -817,7 +850,16 @@ const ShowPreviousSplits = () => {
                   
                   {/* People buttons with horizontal scrolling - with scroll position tracking */}
                   <div className="pt-1">
-                    <p className="text-sm text-gray-700 mb-2">Paid by:</p>
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm text-gray-700">Paid by:</p>
+                      <button
+                        onClick={() => handleCustomSplit(index)}
+                        className="text-sm text-blue-600 hover:text-blue-700 flex items-center space-x-1"
+                      >
+                        <Percent size={16} />
+                        <span>Custom Split</span>
+                      </button>
+                    </div>
                     <div 
                       id={`item-${index}-scroll-container`}
                       className="overflow-x-auto pb-1" 
@@ -1006,6 +1048,22 @@ const ShowPreviousSplits = () => {
             </div>
           </div>
         )}
+
+        {/* Custom Split Dialogue */}
+        <CustomSplitDialogue
+          isOpen={showCustomSplit}
+          onClose={() => setShowCustomSplit(false)}
+          people={people}
+          itemName={selectedItemIndex !== null ? items[selectedItemIndex]?.name : ''}
+          onSave={handleSaveCustomSplit}
+          currentSplits={selectedItemIndex !== null ? customSplits[selectedItemIndex] : {}}
+          selectedPeople={selectedItemIndex !== null ? 
+            people
+              .filter(person => person.paidFor[selectedItemIndex])
+              .map(person => person.name) 
+            : []
+          }
+        />
       </div>
     );
   };
