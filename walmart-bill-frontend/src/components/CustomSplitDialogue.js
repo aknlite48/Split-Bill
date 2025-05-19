@@ -9,12 +9,22 @@ export const CustomSplitDialogue = ({ isOpen, onClose, people, itemName, onSave,
 
   // Initialize splits when component mounts or when people/currentSplits change
   useEffect(() => {
-    if (people && currentSplits) {
+    if (people && selectedPeople) {
       const initialSplits = {};
-      // Only initialize splits for selected people
-      selectedPeople.forEach(person => {
-        initialSplits[person] = currentSplits[person] || '';
-      });
+      
+      // If there are existing splits, use them
+      if (currentSplits && Object.keys(currentSplits).length > 0) {
+        selectedPeople.forEach(person => {
+          initialSplits[person] = currentSplits[person] || '';
+        });
+      } else {
+        // Otherwise, set equal splits
+        const equalPercentage = (100 / selectedPeople.length).toFixed(2);
+        selectedPeople.forEach(person => {
+          initialSplits[person] = equalPercentage;
+        });
+      }
+      
       setSplits(initialSplits);
       calculateTotal(initialSplits);
     }
