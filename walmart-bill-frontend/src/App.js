@@ -298,11 +298,9 @@ const Upload_Page = () => {
       setUploadError(null);
       
       try {
-        // Create form data for API request
         const formData = new FormData();
         formData.append('image', drawingFile);
         
-        // Make the API request
         const response = await fetch('/upload-image', {
           method: 'POST',
           body: formData,
@@ -311,23 +309,28 @@ const Upload_Page = () => {
         const data = await response.json();
         
         if (data.success) {
-          // Add to previous splits history
           addToPreviousSplits();
-          
-          // Update with extracted data
           setItems(data.extractedData.items);
           setTax(data.extractedData.tax);
           setTotal(data.extractedData.total);
           setPeople([]);
-          
-          // Close whiteboard and navigate to bill page
           setShowWhiteboard(false);
           navigate('/bill');
         } else {
-          setUploadError(data.error || 'Failed to process drawing. Please try again or use a different method.');
+          if (data.error === "Too many requests from this IP, please try again after 15 minutes") {
+            setUploadError("You've reached the request limit. Please wait 15 minutes before trying again.");
+          } else if (data.error === "Image processing failed") {
+            setUploadError("Unable to process your drawing. Please try drawing more clearly or use a different method.");
+          } else {
+            setUploadError("Unable to process your drawing. Please try again or use a different method.");
+          }
         }
       } catch (error) {
-        setUploadError('Failed to process drawing. Check your internet connection or try again later.');
+        if (!navigator.onLine) {
+          setUploadError("No internet connection. Please check your connection and try again.");
+        } else {
+          setUploadError("Unable to process your drawing. Please try again or use a different method.");
+        }
         console.error('Drawing processing failed', error);
       }
     };
@@ -420,10 +423,10 @@ const Upload_Page = () => {
     localStorage.setItem("tax", selectedSplit.tax.toString());
     
     // Remove this split from the previous splits history
-    const updatedPreviousSplits = [...previousSplit];
-    updatedPreviousSplits.splice(splitIndex, 1);
-    setPreviousSplit(updatedPreviousSplits);
-    localStorage.setItem("previousSplit", JSON.stringify(updatedPreviousSplits));
+    const updatedSplits = [...previousSplit];
+    updatedSplits.splice(splitIndex, 1);
+    setPreviousSplit(updatedSplits);
+    localStorage.setItem("previousSplit", JSON.stringify(updatedSplits));
     
     // Navigate to the bill page
     navigate("/bill");
@@ -543,7 +546,6 @@ const ShowPreviousSplits = () => {
     const formData = new FormData();
     let endpoint;
 
-  
     if (file.type === "application/pdf") {
       formData.append("pdf", file);
       endpoint = "/upload-pdf";
@@ -551,7 +553,7 @@ const ShowPreviousSplits = () => {
       formData.append("image", file);
       endpoint = "/upload-image";
     } else {
-      setUploadError("Unsupported file type. Please upload a PDF or image file.");
+      setUploadError("Please upload a PDF or image file (JPG, PNG). Other file types are not supported.");
       return;
     }
   
@@ -567,19 +569,34 @@ const ShowPreviousSplits = () => {
       const data = await response.json();
       
       if (data.success) {
-        //split history
         addToPreviousSplits();
-
         setItems(data.extractedData.items);
         setTax(data.extractedData.tax);
         setTotal(data.extractedData.total);
         setPeople([]);
         navigate("/bill");
       } else {
-        setUploadError(data.error || "Failed to parse receipt. Please try a different image or upload manually.");
+        // Handle specific error cases
+        if (data.error === "Too many requests from this IP, please try again after 15 minutes") {
+          setUploadError("You've reached the request limit. Please wait 15 minutes before trying again.");
+        } else if (data.error === "No file uploaded") {
+          setUploadError("Please select a file to upload.");
+        } else if (data.error === "Image processing failed") {
+          setUploadError("Unable to process the image. Please try uploading a clearer image or a different file.");
+        } else if (data.error === "OpenAI API failed") {
+          setUploadError("We're having trouble processing your receipt. Please try again in a few minutes or upload manually.");
+        } else {
+          setUploadError("Unable to scan the receipt. Please try uploading a clearer image or enter the items manually.");
+        }
       }
     } catch (error) {
-      setUploadError("Failed to upload. Check your internet connection or try again later.");
+      if (!navigator.onLine) {
+        setUploadError("No internet connection. Please check your connection and try again.");
+      } else if (error.name === "TypeError") {
+        setUploadError("Unable to connect to the server. Please try again in a few minutes.");
+      } else {
+        setUploadError("Something went wrong. Please try again or upload manually.");
+      }
       console.error("Upload failed", error);
     } finally {
       setIsUploading(false);
