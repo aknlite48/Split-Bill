@@ -10,7 +10,7 @@ import {
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
 import { Card, CardContent } from "./components/ui/Card";
-import { Trash2, Edit, Check } from "lucide-react";
+import { Trash2, Edit, Check, Receipt } from "lucide-react";
 import { Dialogue } from "./components/ui/Dialogue";
 import { NavBar } from "./components/NavBar"
 import { Plus, UserPlus, SplitIcon} from 'lucide-react';
@@ -1012,68 +1012,104 @@ const ShowPreviousSplits = () => {
                 transition={{ type: "spring", duration: 0.3 }}
                 className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
               >
-                {/* Header */}
-                <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-                  <h3 className="text-xl font-bold text-gray-800">Split Details</h3>
+                {/* Header with gradient */}
+                <div className="px-6 py-5 bg-gradient-to-r from-blue-600 to-blue-700 flex justify-between items-center">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-white/20 p-2 rounded-lg">
+                      <SplitIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white">Split Details</h3>
+                  </div>
                   <button
                     onClick={() => setShowSplitDialog(false)}
-                    className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    className="text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
                 
-                {/* Calculations summary */}
-                <div className="px-6 py-3 bg-blue-50 border-b">
-                  <div className="flex justify-between text-sm text-blue-800">
-                    <span>Total bill amount:</span>
-                    <span className="font-semibold">${calculatedTotal.toFixed(2)}</span>
+                {/* Summary section */}
+                <div className="px-6 py-4 bg-gray-50 border-b">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Receipt className="w-5 h-5 text-blue-600" />
+                      <span className="text-gray-700 font-medium">Bill Summary</span>
+                    </div>
+                    <span className="text-2xl font-bold text-blue-600">${calculatedTotal.toFixed(2)}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="bg-white p-3 rounded-lg border">
+                      <div className="text-gray-500 mb-1">Items</div>
+                      <div className="font-medium text-gray-900">{items.length} items</div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border">
+                      <div className="text-gray-500 mb-1">People</div>
+                      <div className="font-medium text-gray-900">{people.length} people</div>
+                    </div>
                   </div>
                   {splitTax && (
-                    <div className="flex justify-between text-sm text-blue-800 mt-1">
-                      <span>Tax split:</span>
-                      <span className="font-semibold">Evenly between {people.length} {people.length === 1 ? 'person' : 'people'}</span>
+                    <div className="mt-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                      <div className="flex items-center text-blue-700 text-sm">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Tax is split evenly between {people.length} {people.length === 1 ? 'person' : 'people'}
+                      </div>
                     </div>
                   )}
                 </div>
                 
                 {/* Person list */}
-                <div className="overflow-y-auto max-h-72 p-2">
+                <div className="overflow-y-auto max-h-[40vh] p-4">
                   {calculateSplit().map((person, index) => (
                     <motion.div 
                       key={person.name}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`py-3 px-4 border-b last:border-b-0 flex justify-between items-center ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                      } rounded-lg my-1`}
+                      className="mb-3 last:mb-0"
                     >
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium mr-3">
-                          {person.name.charAt(0).toUpperCase()}
+                      <div className="bg-white rounded-xl border p-4 hover:border-blue-200 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-medium text-lg shadow-sm">
+                              {person.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">{person.name}</div>
+                              <div className="text-sm text-gray-500">
+                                {((person.amount / calculatedTotal) * 100).toFixed(1)}% of total
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-blue-600">${person.amount.toFixed(2)}</div>
+                            <div className="text-xs text-gray-500">
+                              {person.amount === 0 ? 'No items' : 
+                               person.amount === calculatedTotal ? 'Paying full amount' :
+                               'Partial payment'}
+                            </div>
+                          </div>
                         </div>
-                        <span className="font-medium text-gray-800">{person.name}</span>
                       </div>
-                      <span className="font-bold text-lg text-blue-600">${person.amount.toFixed(2)}</span>
                     </motion.div>
                   ))}
                 </div>
                 
-                {/* Footer with total and close button */}
-                <div className="px-6 py-4 border-t flex justify-between items-center bg-gray-50">
-                  <div>
-                    <p className="text-sm text-gray-500">Total split: ${calculateSplit().reduce((sum, p) => sum + p.amount, 0).toFixed(2)}</p>
+                {/* Footer */}
+                <div className="px-6 py-4 border-t bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-500">
+                      Total split: <span className="font-medium text-gray-900">${calculateSplit().reduce((sum, p) => sum + p.amount, 0).toFixed(2)}</span>
+                    </div>
+                    <Button 
+                      onClick={() => setShowSplitDialog(false)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      <span>Close</span>
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Button 
-                    onClick={() => setShowSplitDialog(false)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                  >
-                    Close
-                  </Button>
                 </div>
               </motion.div>
             </motion.div>
