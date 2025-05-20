@@ -10,7 +10,7 @@ import {
 import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
 import { Card, CardContent } from "./components/ui/Card";
-import { Trash2, Edit, Check, Receipt } from "lucide-react";
+import { Trash2, Edit, Check, Receipt, Share2 } from "lucide-react";
 import { Dialogue } from "./components/ui/Dialogue";
 import { NavBar } from "./components/NavBar"
 import { Plus, UserPlus, SplitIcon} from 'lucide-react';
@@ -20,6 +20,7 @@ import { Whiteboard } from "./components/Whiteboard";
 import { CustomSplitDialogue } from "./components/CustomSplitDialogue";
 import { Percent, BarChart2 } from 'lucide-react';
 import { LandingPage } from "./components/LandingPage";
+import html2canvas from 'html2canvas';
 
 const SCROLL_POSITION = { current: 0 };
 const HORIZONTAL_SCROLL_POSITIONS = {};
@@ -779,6 +780,7 @@ const ShowPreviousSplits = () => {
 
   const Bill_Page = () => {
     const [showSplitDialog, setShowSplitDialog] = useState(false);
+    const splitDialogRef = useRef(null);
     const scrollContainerRef = useRef(null);
   
   // Save and restore scroll position
@@ -798,6 +800,69 @@ const ShowPreviousSplits = () => {
       return () => container.removeEventListener('scroll', handleScroll);
     }, [items, editingIndex]);
     
+    const handleShareSplit = async () => {
+      if (!splitDialogRef.current) return;
+
+      try {
+        // Create a temporary container for the content we want to share
+        const tempContainer = document.createElement('div');
+        tempContainer.className = 'bg-white p-6 rounded-xl max-w-md mx-auto';
+        
+        // Clone the content we want to share
+        const contentToShare = splitDialogRef.current.cloneNode(true);
+        
+        // Remove the close button and footer
+        const closeButton = contentToShare.querySelector('button');
+        const footer = contentToShare.querySelector('.border-t');
+        if (closeButton) closeButton.remove();
+        if (footer) footer.remove();
+        
+        // Add the content to the temporary container
+        tempContainer.appendChild(contentToShare);
+        document.body.appendChild(tempContainer);
+        
+        // Capture the content as an image
+        const canvas = await html2canvas(tempContainer, {
+          backgroundColor: '#ffffff',
+          scale: 2, // Higher quality
+          logging: false,
+          useCORS: true
+        });
+        
+        // Convert to blob
+        canvas.toBlob(async (blob) => {
+          // Create a file from the blob
+          const file = new File([blob], 'split-details.png', { type: 'image/png' });
+          
+          // Share the file
+          if (navigator.share) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: 'Bill Split Details',
+                text: `Total: $${calculatedTotal.toFixed(2)}`
+              });
+            } catch (err) {
+              console.error('Error sharing:', err);
+            }
+          } else {
+            // Fallback for browsers that don't support sharing
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'split-details.png';
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+          
+          // Clean up
+          document.body.removeChild(tempContainer);
+        }, 'image/png');
+      } catch (error) {
+        console.error('Error capturing split details:', error);
+      }
+    };
+
     return (
       <div className="flex flex-col h-[calc(100vh-100px)] max-w-2xl mx-auto overflow-hidden">
         {/* Fixed header with buttons */}
@@ -1006,6 +1071,7 @@ const ShowPreviousSplits = () => {
               className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
             >
               <motion.div
+                ref={splitDialogRef}
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
@@ -1072,9 +1138,18 @@ const ShowPreviousSplits = () => {
                       <div className="bg-white rounded-xl border p-4 hover:border-blue-200 transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-medium text-lg shadow-sm">
-                              {person.name.charAt(0).toUpperCase()}
-                            </div>
+                            <svg width="40" height="40" viewBox="0 0 40 40" style={{display: 'block'}}>
+                              <defs>
+                                <linearGradient id="avatarGradient" x1="0" y1="0" x2="1" y2="1">
+                                  <stop offset="0%" stopColor="#3b82f6" />
+                                  <stop offset="100%" stopColor="#2563eb" />
+                                </linearGradient>
+                              </defs>
+                              <circle cx="20" cy="20" r="20" fill="url(#avatarGradient)" />
+                              <text x="50%" y="55%" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold" fontFamily="sans-serif" dominantBaseline="middle">
+                                {person.name.charAt(0).toUpperCase()}
+                              </text>
+                            </svg>
                             <div>
                               <div className="font-medium text-gray-900">{person.name}</div>
                               <div className="text-sm text-gray-500">
@@ -1096,18 +1171,18 @@ const ShowPreviousSplits = () => {
                   ))}
                 </div>
                 
-                {/* Footer */}
+                {/* Footer with share button */}
                 <div className="px-6 py-4 border-t bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-500">
                       Total split: <span className="font-medium text-gray-900">${calculateSplit().reduce((sum, p) => sum + p.amount, 0).toFixed(2)}</span>
                     </div>
                     <Button 
-                      onClick={() => setShowSplitDialog(false)}
+                      onClick={handleShareSplit}
                       className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
                     >
-                      <span>Close</span>
-                      <X className="w-4 h-4" />
+                      <Share2 className="w-4 h-4" />
+                      <span>Share Split</span>
                     </Button>
                   </div>
                 </div>
