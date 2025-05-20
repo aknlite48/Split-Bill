@@ -736,35 +736,49 @@ const ShowPreviousSplits = () => {
         )}
         
         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <Button 
-            onClick={handleUpload} 
-            disabled={!file || isUploading}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md disabled:opacity-50 transition-colors"
+          <motion.div 
+            className="flex-1"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            {isUploading ? (
-              <>
-                <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <Upload className="h-5 w-5 mr-2" />
-                Process Receipt
-              </>
-            )}
-          </Button>
+            <Button 
+              onClick={handleUpload} 
+              disabled={!file || isUploading}
+              className="w-full h-[52px] bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-3 font-medium"
+            >
+              {isUploading ? (
+                <>
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-5 w-5" />
+                  <span>Process Receipt</span>
+                </>
+              )}
+            </Button>
+          </motion.div>
 
-          <Button 
-            onClick={handleEmptyBill} 
-            variant="outline"
-            className="flex-1 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md transition-colors"
+          <motion.div 
+            className="flex-1"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            Start Empty Bill
-          </Button>
+            <Button 
+              onClick={handleEmptyBill} 
+              className="w-full h-[52px] bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center space-x-3 font-medium"
+            >
+              <FileText className="h-5 w-5 text-gray-500" />
+              <span>Start Empty Bill</span>
+            </Button>
+          </motion.div>
         </div>
         
-        <div className="mt-4 text-center text-xs text-gray-500">
-          <p>After uploading, you'll be able to edit the bill details and split costs with friends</p>
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-500">
+            After uploading, you'll be able to edit the bill details and split costs with friends
+          </p>
         </div>
         
       </div>
