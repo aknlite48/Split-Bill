@@ -1,6 +1,7 @@
 {
-  "short_name": "SplitBill",
-  "name": "Split Bill App",
+  "short_name": "Split-a-Bill",
+  "name": "Split-a-Bill | Smart Bill Splitting",
+  "description": "The smartest way to split bills with friends. Upload receipts, customize splits, and settle up in seconds.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -21,10 +22,40 @@
       "src": "apple-touch-icon.png",
       "type": "image/png",
       "sizes": "192x192"
+    },
+    {
+      "src": "android-chrome-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "android-chrome-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "categories": ["finance", "utilities", "productivity"],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Split-a-Bill Dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Bill",
+      "short_name": "New Bill",
+      "description": "Start a new bill split",
+      "url": "/app/upload",
+      "icons": [{ "src": "favicon-96x96.png", "sizes": "96x96" }]
+    }
+  ]
 }

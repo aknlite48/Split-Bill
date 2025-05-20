@@ -1,3 +1,14 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Allow: /app/
+Allow: /app/upload
+Allow: /app/bill
+
+# Disallow API routes
+Disallow: /api/
+Disallow: /upload-pdf
+Disallow: /upload-image
+
+# Sitemap
+Sitemap: https://split-a-bill.com/sitemap.xml
