@@ -951,7 +951,7 @@ const ShowPreviousSplits = () => {
         <div className="p-4 border-t bg-white sticky bottom-0 z-10">
           <div className="mb-2 p-3 border rounded flex justify-between items-center">
             <div>
-              <p>
+              <p className="text-lg">
                 <strong>Tax:</strong>
               </p>
             </div>
@@ -959,7 +959,7 @@ const ShowPreviousSplits = () => {
               {editingTax ? (
                 <input
                   type="number"
-                  className="border p-1 w-20 text-center"
+                  className="border p-1 w-20 text-center text-lg"
                   value={tempTax}
                   onChange={handleTaxChange}
                   onBlur={saveTax}
@@ -968,7 +968,7 @@ const ShowPreviousSplits = () => {
                 />
               ) : (
                 <span
-                  className="cursor-pointer text-blue-600 font-bold"
+                  className="cursor-pointer text-blue-600 font-bold text-lg"
                   onClick={handleTaxEdit}
                 >
                   ${tax.toFixed(2)}
@@ -982,13 +982,14 @@ const ShowPreviousSplits = () => {
                 checked={splitTax}
                 onChange={() => setSplitTax(!splitTax)}
               />
-              <label>Split Tax</label>
+              <label className="text-lg">Split Tax</label>
             </div>
           </div>
   
           <div className="p-3 border rounded">
-            <p>
-              <strong>Final Total:</strong> ${calculatedTotal.toFixed(2)}
+            <p className="flex justify-between items-center">
+              <span className="text-gray-700 font-bold text-lg">Final Total:</span>
+              <span className="text-blue-600 font-bold text-2xl">${calculatedTotal.toFixed(2)}</span>
             </p>
           </div>
         </div>
