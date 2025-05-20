@@ -749,12 +749,12 @@ const ShowPreviousSplits = () => {
               {isUploading ? (
                 <>
                   <RefreshCw className="h-5 w-5 animate-spin" />
-                  <span>Processing...</span>
+                  <span>Scanning...</span>
                 </>
               ) : (
                 <>
                   <Upload className="h-5 w-5" />
-                  <span>Process Receipt</span>
+                  <span>Scan Receipt</span>
                 </>
               )}
             </Button>
