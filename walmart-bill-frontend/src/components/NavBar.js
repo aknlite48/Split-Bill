@@ -11,11 +11,17 @@ export const NavBar = () => {
     return location.pathname === path;
   };
 
+  const isAppPage = location.pathname.startsWith('/app/');
+
   return (
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="bg-white border-b border-gray-200 shadow-sm"
+      className={`border-b shadow-sm ${
+        isAppPage 
+          ? 'bg-gradient-to-r from-blue-600 to-blue-700 border-blue-800' 
+          : 'bg-white border-gray-200'
+      }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
@@ -23,10 +29,14 @@ export const NavBar = () => {
             <div className="flex-shrink-0 flex items-center">
               <button
                 onClick={() => navigate('/')}
-                className="text-gray-900 font-bold text-xl flex items-center space-x-2"
+                className={`font-bold text-xl flex items-center space-x-2 ${
+                  isAppPage ? 'text-white' : 'text-gray-900'
+                }`}
               >
-                <Receipt className="w-6 h-6 text-blue-600" />
-                <span>Bill Splitter</span>
+                <div className="flex items-center">
+                  <Receipt className={`w-6 h-6 ${isAppPage ? 'text-white' : 'text-blue-600'} mr-2`} />
+                  <span className="font-bold tracking-tight">SplitBill</span>
+                </div>
               </button>
             </div>
           </div>
@@ -36,8 +46,12 @@ export const NavBar = () => {
               onClick={() => navigate('/app/upload')}
               className={`p-2 rounded-lg transition-colors ${
                 isActive('/app/upload') 
-                  ? 'text-blue-600 bg-blue-50' 
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                  ? isAppPage
+                    ? 'text-white bg-blue-800/50' 
+                    : 'text-blue-600 bg-blue-50'
+                  : isAppPage
+                    ? 'text-white/80 hover:text-white hover:bg-blue-800/50'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
               }`}
               title="Upload Receipt"
             >
@@ -47,8 +61,12 @@ export const NavBar = () => {
               onClick={() => navigate('/app/bill')}
               className={`p-2 rounded-lg transition-colors ${
                 isActive('/app/bill') 
-                  ? 'text-blue-600 bg-blue-50' 
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                  ? isAppPage
+                    ? 'text-white bg-blue-800/50'
+                    : 'text-blue-600 bg-blue-50'
+                  : isAppPage
+                    ? 'text-white/80 hover:text-white hover:bg-blue-800/50'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
               }`}
               title="View Bill"
             >
@@ -58,8 +76,12 @@ export const NavBar = () => {
               onClick={() => navigate('/')}
               className={`p-2 rounded-lg transition-colors ${
                 isActive('/') 
-                  ? 'text-blue-600 bg-blue-50' 
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                  ? isAppPage
+                    ? 'text-white bg-blue-800/50'
+                    : 'text-blue-600 bg-blue-50'
+                  : isAppPage
+                    ? 'text-white/80 hover:text-white hover:bg-blue-800/50'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
               }`}
               title="Home"
             >
