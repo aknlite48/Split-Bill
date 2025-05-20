@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Receipt, Home, Upload, FileText } from 'lucide-react';
+import { Receipt, Upload, FileText } from 'lucide-react';
 
 export const NavBar = () => {
   const navigate = useNavigate();
@@ -71,21 +71,6 @@ export const NavBar = () => {
               title="View Bill"
             >
               <FileText className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => navigate('/')}
-              className={`p-2 rounded-lg transition-colors ${
-                isActive('/') 
-                  ? isAppPage
-                    ? 'text-white bg-blue-800/50'
-                    : 'text-blue-600 bg-blue-50'
-                  : isAppPage
-                    ? 'text-white/80 hover:text-white hover:bg-blue-800/50'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
-              }`}
-              title="Home"
-            >
-              <Home className="w-5 h-5" />
             </button>
           </div>
         </div>
